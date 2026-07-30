@@ -1,0 +1,110 @@
+"use server";
+
+import { createAdminClient } from "@/lib/supabase/server";
+import { registroSchema } from "@/lib/validations/registro";
+
+export interface RegistroActionState {
+  success: boolean;
+  message: string;
+  folio?: string;
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+
+export async function registrarAsistente(
+  _prev: RegistroActionState,
+  formData: FormData
+): Promise<RegistroActionState> {
+  const raw = {
+    nombre: formData.get("nombre")?.toString() ?? "",
+    correo: formData.get("correo")?.toString() ?? "",
+    celular: formData.get("celular")?.toString() ?? "",
+    estado: formData.get("estado")?.toString() ?? "",
+    especialidad: formData.get("especialidad")?.toString() ?? "",
+    tipo_inscripcion: formData.get("tipo_inscripcion")?.toString() ?? "",
+    aceptaPrivacidad: formData.get("aceptaPrivacidad") === "on",
+  };
+
+  const parsed = registroSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message ?? "Revisa los datos del formulario.",
+    };
+  }
+
+  const comprobante = formData.get("comprobante") as File | null;
+  if (!comprobante || comprobante.size === 0) {
+    return { success: false, message: "Sube tu comprobante de pago." };
+  }
+  if (comprobante.size > MAX_FILE_SIZE) {
+    return { success: false, message: "El comprobante no debe exceder 5MB." };
+  }
+  if (!ACCEPTED_TYPES.includes(comprobante.type)) {
+    return { success: false, message: "Formato de comprobante no permitido (usa JPG, PNG o PDF)." };
+  }
+
+const supabase = await createAdminClient();
+
+  // 1. Subir comprobante al bucket privado "comprobantes"
+  const ext = comprobante.name.split(".").pop();
+  const path = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("comprobantes")
+    .upload(path, comprobante, { contentType: comprobante.type });
+
+  if (uploadError) {
+  console.error(uploadError);
+
+  return {
+    success: false,
+    message: uploadError.message,
+  };
+}
+
+const comprobantePath = path;
+
+  // 2. Insertar el registro (el folio se genera automáticamente en la base de datos)
+  const { data: registro, error: insertError } = await supabase
+    .from("registros")
+    .insert({
+      nombre: parsed.data.nombre,
+      correo: parsed.data.correo,
+      celular: parsed.data.celular,
+      estado: parsed.data.estado,
+      especialidad: parsed.data.especialidad,
+      tipo_inscripcion: parsed.data.tipo_inscripcion,
+      comprobante_url: comprobantePath,
+      estatus_pago: "pendiente",
+    })
+    .select("id, folio")
+    .single();
+
+  if (insertError) {
+  console.error(insertError);
+
+  return {
+    success: false,
+    message: insertError.message,
+  };
+}
+
+  // 3. Guardar el comprobante también en la tabla de historial (permite
+  // re-subir más adelante si el pago es rechazado, sin perder el rastro).
+  await supabase.from("comprobantes").insert({
+    registro_id: registro.id,
+    storage_path: path,
+    url: comprobantePath,
+  });
+
+  // TODO: disparar correo de "Confirmación de registro" aquí una vez
+  // que se conecte un proveedor de correo (ver lib/email/README.md).
+
+  return {
+    success: true,
+    message: "¡Registro recibido! Te contactaremos para confirmar tu pago.",
+    folio: registro.folio,
+  };
+}

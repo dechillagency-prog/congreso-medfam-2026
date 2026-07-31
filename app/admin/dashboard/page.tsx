@@ -2,9 +2,11 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Registro, EstatusPago, TipoInscripcion } from "@/types";
 import { TIPOS_INSCRIPCION } from "@/lib/validations/registro";
+import { getConfiguracion } from "@/lib/config";
 import { EstatusBadge } from "@/components/admin/estatus-badge";
 import { AccionesRegistro } from "@/components/admin/acciones-registro";
 import { FiltrosRegistros } from "@/components/admin/filtros-registros";
+import { WhatsAppConfirmacionLink } from "@/components/admin/whatsapp-confirmacion-link";
 
 const PRECIOS: Record<TipoInscripcion, number> = Object.fromEntries(
   TIPOS_INSCRIPCION.map((tipo) => [tipo.value, tipo.precio])
@@ -111,6 +113,7 @@ export default async function AdminDashboardPage({
   }
 
   const lista = (registros as Registro[] | null) ?? [];
+  const ligaComunidad = await getConfiguracion<string | null>("whatsapp_comunidad_url", null);
 
   return (
     <section className="mx-auto max-w-8xl px-6 py-12">
@@ -173,7 +176,7 @@ export default async function AdminDashboardPage({
       />
 
       <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
-        <table className="w-full min-w-[1000px] text-left text-sm">
+        <table className="w-full min-w-[1160px] text-left text-sm">
           <thead className="bg-surface text-xs uppercase tracking-wide text-body/50">
             <tr>
               <th className="px-4 py-3">Folio</th>
@@ -185,6 +188,7 @@ export default async function AdminDashboardPage({
                 Fecha de registro
               </th>
               <th className="px-4 py-3">Acción</th>
+              <th className="px-4 py-3">WhatsApp</th>
               <th className="px-4 py-3">Detalle</th>
             </tr>
           </thead>
@@ -250,6 +254,17 @@ export default async function AdminDashboardPage({
                 </td>
 
                 <td className="px-4 py-3">
+                  <WhatsAppConfirmacionLink
+                    nombre={registro.nombre}
+                    folio={registro.folio}
+                    celular={registro.celular}
+                    estatusPago={registro.estatus_pago}
+                    ligaComunidad={ligaComunidad}
+                    compact
+                  />
+                </td>
+
+                <td className="px-4 py-3">
                   <Link
                     href={`/admin/dashboard/${registro.id}`}
                     className="text-xs font-semibold text-primary hover:underline"
@@ -263,7 +278,7 @@ export default async function AdminDashboardPage({
             {lista.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-4 py-10 text-center text-body/50"
                 >
                   No hay registros que coincidan con la

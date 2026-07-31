@@ -2,26 +2,18 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TIPOS_INSCRIPCION } from "@/lib/validations/registro";
-
-const INCLUYE: Record<string, string[]> = {
-  federado: ["Acceso a las 4 sesiones", "Constancia con valor curricular", "Material del congreso", "Coffee breaks"],
-  no_federado: ["Acceso a las 4 sesiones", "Constancia con valor curricular", "Material del congreso", "Coffee breaks"],
-  residente: ["Acceso a las 4 sesiones", "Constancia con valor curricular", "Material del congreso"],
-};
+import { COSTOS_COPY, PLANES_COSTOS } from "@/content/costos";
 
 export default function CostosPage() {
   return (
     <section className="section-pad">
       <div className="mx-auto max-w-6xl px-6">
-        <p className="eyebrow text-center">Inversión</p>
-        <h1 className="mt-4 text-center text-4xl font-bold text-ink">Costos de inscripción</h1>
-        <p className="mx-auto mt-4 max-w-xl text-center text-body/70">
-          Precios en pesos mexicanos (MXN). Incluye acceso completo al congreso.
-        </p>
+        <p className="eyebrow text-center">{COSTOS_COPY.eyebrow}</p>
+        <h1 className="mt-4 text-center text-4xl font-bold text-ink">{COSTOS_COPY.titulo}</h1>
+        <p className="mx-auto mt-4 max-w-xl text-center text-body/70">{COSTOS_COPY.descripcion}</p>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {TIPOS_INSCRIPCION.map((tipo, i) => (
+          {PLANES_COSTOS.map((tipo, i) => (
             <Card key={tipo.value} className={i === 1 ? "border-primary ring-1 ring-primary" : ""}>
               <CardContent className="flex h-full flex-col">
                 <p className="eyebrow">{tipo.label}</p>
@@ -31,7 +23,7 @@ export default function CostosPage() {
                 </p>
 
                 <ul className="mt-6 flex-1 space-y-3">
-                  {INCLUYE[tipo.value].map((item) => (
+                  {tipo.incluye.map((item) => (
                     <li key={item} className="flex items-start gap-2 text-sm text-body/80">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> {item}
                     </li>

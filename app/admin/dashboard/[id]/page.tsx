@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, MapPin, Stethoscope, Calendar, FileText } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
-import { getComprobanteSignedUrl } from "@/lib/supabase/storage";
+import { getComprobanteSignedUrl, getCartaFederadaSignedUrl } from "@/lib/supabase/storage";
+import { getConfiguracion } from "@/lib/config";
 import type { Registro, Comprobante } from "@/types";
 import { EstatusBadge } from "@/components/admin/estatus-badge";
 import { AccionesRegistro } from "@/components/admin/acciones-registro";
+import { WhatsAppConfirmacionLink } from "@/components/admin/whatsapp-confirmacion-link";
 
 export default async function AdminRegistroDetallePage({
   params,
@@ -47,6 +49,12 @@ export default async function AdminRegistroDetallePage({
   const comprobanteActual = historialConUrl[0] ?? null;
   const nombreAprobador = aprobador?.data?.nombre ?? (r.aprobado_por ? "Administrador" : null);
 
+  const cartaFederadaSignedUrl = r.carta_federada_url
+    ? await getCartaFederadaSignedUrl(r.carta_federada_url)
+    : null;
+
+  const ligaComunidad = await getConfiguracion<string | null>("whatsapp_comunidad_url", null);
+
   return (
     <section className="mx-auto max-w-5xl px-6 py-12">
       <Link href="/admin/dashboard" className="flex items-center gap-1.5 text-sm text-body/60 hover:text-ink">
@@ -62,7 +70,16 @@ export default async function AdminRegistroDetallePage({
             {r.codigo_qr && <span className="font-mono text-xs text-body/40">{r.codigo_qr}</span>}
           </div>
         </div>
-        <AccionesRegistro id={r.id} estatusActual={r.estatus_pago} />
+        <div className="flex flex-col items-end gap-3">
+          <AccionesRegistro id={r.id} estatusActual={r.estatus_pago} />
+          <WhatsAppConfirmacionLink
+            nombre={r.nombre}
+            folio={r.folio}
+            celular={r.celular}
+            estatusPago={r.estatus_pago}
+            ligaComunidad={ligaComunidad}
+          />
+        </div>
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
@@ -133,6 +150,31 @@ export default async function AdminRegistroDetallePage({
           <p className="mt-3 text-sm text-body/50">Este registro no tiene ningún comprobante subido.</p>
         )}
       </div>
+
+      {/* Carta Federada (solo aplica a Socios Federados) */}
+      {r.tipo_inscripcion === "federado" && (
+        <div className="mt-8 rounded-2xl border border-border p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-body/50">Carta Federada</h2>
+          {r.carta_federada_url ? (
+            cartaFederadaSignedUrl ? (
+              <a
+                href={cartaFederadaSignedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
+              >
+                <FileText className="h-4 w-4" /> Ver / descargar Carta Federada (enlace válido 5 minutos)
+              </a>
+            ) : (
+              <p className="mt-3 text-sm text-red-600">
+                No se pudo generar el enlace de la Carta Federada. Verifica que el archivo siga existiendo en Storage.
+              </p>
+            )
+          ) : (
+            <p className="mt-3 text-sm text-body/50">Este registro no tiene Carta Federada subida.</p>
+          )}
+        </div>
+      )}
 
       {/* Historial de comprobantes */}
       {historialConUrl.length > 1 && (

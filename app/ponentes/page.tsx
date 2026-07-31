@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { esUrlImagenValida, esImagenOptimizablePorNextImage } from "@/lib/utils/imagen";
 import type { Ponente } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,12 +26,13 @@ export default async function PonentesPage() {
           {ponentes.map((ponente) => (
             <Card key={ponente.id}>
               <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-surface">
-                {ponente.foto_url ? (
+                {ponente.foto_url && esUrlImagenValida(ponente.foto_url) ? (
                   <Image
                     src={ponente.foto_url}
                     alt={ponente.nombre}
                     fill
                     sizes="240px"
+                    unoptimized={!esImagenOptimizablePorNextImage(ponente.foto_url)}
                     className="object-cover"
                   />
                 ) : (

@@ -2,11 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { subirImagenAdmin, type SubirImagenResult } from "@/lib/supabase/storage";
 import type { TablesInsert, TablesUpdate } from "@/types/supabase";
 
 export interface AccionResult {
   success: boolean;
   message?: string;
+}
+
+export async function subirFotoPonente(formData: FormData): Promise<SubirImagenResult> {
+  return subirImagenAdmin("ponentes", formData.get("foto") as File | null);
 }
 
 export async function crearPonente(data: TablesInsert<"ponentes">): Promise<AccionResult> {

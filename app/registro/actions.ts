@@ -11,6 +11,7 @@ export interface RegistroActionState {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+const ACCEPTED_CARTA_FEDERADA_TYPES = ["application/pdf"];
 
 export async function registrarAsistente(
   _prev: RegistroActionState,
@@ -45,6 +46,20 @@ export async function registrarAsistente(
     return { success: false, message: "Formato de comprobante no permitido (usa JPG, PNG o PDF)." };
   }
 
+  // La Carta Federada solo aplica (y es obligatoria) para "Socios Federados".
+  const cartaFederada = formData.get("carta_federada") as File | null;
+  if (parsed.data.tipo_inscripcion === "federado") {
+    if (!cartaFederada || cartaFederada.size === 0) {
+      return { success: false, message: "Sube tu Carta Federada." };
+    }
+    if (cartaFederada.size > MAX_FILE_SIZE) {
+      return { success: false, message: "La Carta Federada no debe exceder 5MB." };
+    }
+    if (!ACCEPTED_CARTA_FEDERADA_TYPES.includes(cartaFederada.type)) {
+      return { success: false, message: "Formato de Carta Federada no permitido (usa PDF)." };
+    }
+  }
+
 const supabase = await createAdminClient();
 
   // 1. Subir comprobante al bucket privado "comprobantes"
@@ -66,6 +81,26 @@ const supabase = await createAdminClient();
 
 const comprobantePath = path;
 
+  // 1.b. Subir Carta Federada al bucket privado "cartas-federadas" (solo federados)
+  let cartaFederadaPath: string | null = null;
+  if (parsed.data.tipo_inscripcion === "federado" && cartaFederada) {
+    const cartaExt = cartaFederada.name.split(".").pop();
+    cartaFederadaPath = `${Date.now()}-${crypto.randomUUID()}.${cartaExt}`;
+
+    const { error: cartaUploadError } = await supabase.storage
+      .from("cartas-federadas")
+      .upload(cartaFederadaPath, cartaFederada, { contentType: cartaFederada.type });
+
+    if (cartaUploadError) {
+      console.error(cartaUploadError);
+
+      return {
+        success: false,
+        message: cartaUploadError.message,
+      };
+    }
+  }
+
   // 2. Insertar el registro (el folio se genera automáticamente en la base de datos)
   const { data: registro, error: insertError } = await supabase
     .from("registros")
@@ -77,6 +112,7 @@ const comprobantePath = path;
       especialidad: parsed.data.especialidad,
       tipo_inscripcion: parsed.data.tipo_inscripcion,
       comprobante_url: comprobantePath,
+      carta_federada_url: cartaFederadaPath,
       estatus_pago: "pendiente",
     })
     .select("id, folio")

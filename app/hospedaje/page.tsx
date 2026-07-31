@@ -1,31 +1,15 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-const HOTELES = [
-  {
-    nombre: "Holiday Inn Express Torreón",
-    tarifa: "Desde $1,650 MXN / noche",
-    imagen: "/images/hotel-holiday-inn.jpg",
-    reservar: "#",
-  },
-  {
-    nombre: "Crowne Plaza Torreón",
-    tarifa: "Desde $2,100 MXN / noche",
-    imagen: "/images/hotel-crowne-plaza.jpg",
-    reservar: "#",
-  },
-];
+import { HOSPEDAJE_COPY, HOTELES } from "@/content/hoteles";
 
 export default function HospedajePage() {
   return (
     <section className="section-pad">
       <div className="mx-auto max-w-5xl px-6">
-        <p className="eyebrow text-center">Hospedaje</p>
-        <h1 className="mt-4 text-center text-4xl font-bold text-ink">Hoteles oficiales</h1>
-        <p className="mx-auto mt-4 max-w-xl text-center text-body/70">
-          Tarifas preferenciales para asistentes del congreso. Menciona el código del evento al reservar.
-        </p>
+        <p className="eyebrow text-center">{HOSPEDAJE_COPY.eyebrow}</p>
+        <h1 className="mt-4 text-center text-4xl font-bold text-ink">{HOSPEDAJE_COPY.titulo}</h1>
+        <p className="mx-auto mt-4 max-w-xl text-center text-body/70">{HOSPEDAJE_COPY.descripcion}</p>
 
         <div className="mt-14 grid gap-8 md:grid-cols-2">
           {HOTELES.map((hotel) => (

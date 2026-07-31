@@ -33,6 +33,7 @@ Server Actions
 supabase/migrations/0001_init.sql              -- tablas base, storage, RLS inicial
 supabase/migrations/0002_admin_approval_flow.sql -- admins, comprobantes, configuraciones, aprobación
 supabase/migrations/0003_produccion.sql        -- folio MF2026-0001, categorías reales, check-in, encuestas, roles
+supabase/migrations/0004_fix_permisos_esquema_public.sql -- otorga los GRANT base de Postgres (no toca RLS)
 ```
 
 Cada archivo es idempotente (usa `if not exists` / `on conflict`), así que si algo

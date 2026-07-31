@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { MapPin, Mail, Phone } from "lucide-react";
+import { CONTACTO_ITEMS, CONTACTO_UBICACION } from "@/content/contacto";
+
+const CORREO = CONTACTO_ITEMS.find((item) => item.tipo === "correo")!.valor;
+const TELEFONO = CONTACTO_ITEMS.find((item) => item.tipo === "telefono")!.valor;
+const { ciudad, estado, pais } = CONTACTO_UBICACION;
 
 export function Footer() {
   return (
@@ -35,13 +40,13 @@ export function Footer() {
             </p>
             <ul className="mt-4 space-y-3 text-sm">
               <li className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 shrink-0" /> Torreón, Coahuila, México
+                <MapPin className="h-4 w-4 shrink-0" /> {ciudad}, {estado}, {pais}
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4 shrink-0" /> contacto@congresomedfam2026.mx
+                <Mail className="h-4 w-4 shrink-0" /> {CORREO}
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4 shrink-0" /> (871) 000 0000
+                <Phone className="h-4 w-4 shrink-0" /> {TELEFONO}
               </li>
             </ul>
           </div>
@@ -49,7 +54,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 XXV Congreso Regional Noreste de Medicina Familiar. Todos los derechos reservados.</p>
-          <p>Torreón, Coahuila · México</p>
+          <p>{ciudad}, {estado} · {pais}</p>
         </div>
       </div>
     </footer>

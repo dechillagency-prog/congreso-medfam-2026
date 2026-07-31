@@ -44,6 +44,7 @@ export interface Database {
           especialidad: string;
           tipo_inscripcion: "federado" | "no_federado" | "residente";
           comprobante_url: string | null;
+          carta_federada_url: string | null;
           estatus_pago: "pendiente" | "confirmado" | "rechazado";
           aprobado_por: string | null;
           fecha_aprobacion: string | null;
@@ -64,6 +65,7 @@ export interface Database {
           especialidad: string;
           tipo_inscripcion: "federado" | "no_federado" | "residente";
           comprobante_url?: string | null;
+          carta_federada_url?: string | null;
           estatus_pago?: "pendiente" | "confirmado" | "rechazado";
           aprobado_por?: string | null;
           fecha_aprobacion?: string | null;

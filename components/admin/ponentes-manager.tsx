@@ -4,8 +4,9 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Loader2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SubidaImagen } from "@/components/admin/subida-imagen";
 import type { Ponente } from "@/types";
-import { crearPonente, actualizarPonente, eliminarPonente } from "@/app/admin/dashboard/ponentes/actions";
+import { crearPonente, actualizarPonente, eliminarPonente, subirFotoPonente } from "@/app/admin/dashboard/ponentes/actions";
 
 type FormValues = {
   nombre: string;
@@ -99,7 +100,14 @@ export function PonentesManager({ ponentes }: { ponentes: Ponente[] }) {
           <input className="input" placeholder="Especialidad" value={nuevo.especialidad} onChange={(e) => setNuevo({ ...nuevo, especialidad: e.target.value })} />
           <input className="input" placeholder="Estado" value={nuevo.estado} onChange={(e) => setNuevo({ ...nuevo, estado: e.target.value })} />
           <input className="input" placeholder="Orden" type="number" value={nuevo.orden} onChange={(e) => setNuevo({ ...nuevo, orden: Number(e.target.value) })} />
-          <input className="input sm:col-span-2" placeholder="URL de foto" value={nuevo.foto_url} onChange={(e) => setNuevo({ ...nuevo, foto_url: e.target.value })} />
+          <SubidaImagen
+            className="sm:col-span-2"
+            label="URL de foto"
+            value={nuevo.foto_url}
+            onChange={(url) => setNuevo({ ...nuevo, foto_url: url })}
+            accion={subirFotoPonente}
+            campoArchivo="foto"
+          />
           <textarea className="input sm:col-span-2 h-20" placeholder="Bio breve" value={nuevo.bio} onChange={(e) => setNuevo({ ...nuevo, bio: e.target.value })} />
           <div className="flex gap-2 sm:col-span-2">
             <Button size="sm" onClick={guardarNuevo} disabled={isPending || !nuevo.nombre}>
@@ -113,9 +121,10 @@ export function PonentesManager({ ponentes }: { ponentes: Ponente[] }) {
       )}
 
       <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
-        <table className="w-full min-w-[800px] text-left text-sm">
+        <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="bg-surface text-xs uppercase tracking-wide text-body/50">
             <tr>
+              <th className="px-4 py-3">Foto</th>
               <th className="px-4 py-3">Orden</th>
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">Especialidad</th>
@@ -127,6 +136,15 @@ export function PonentesManager({ ponentes }: { ponentes: Ponente[] }) {
             {ponentes.map((p) =>
               editandoId === p.id ? (
                 <tr key={p.id} className="border-t border-border bg-primary/5">
+                  <td className="px-4 py-2 min-w-[280px]">
+                    <SubidaImagen
+                      label="URL de foto"
+                      value={editValues.foto_url}
+                      onChange={(url) => setEditValues({ ...editValues, foto_url: url })}
+                      accion={subirFotoPonente}
+                      campoArchivo="foto"
+                    />
+                  </td>
                   <td className="px-4 py-2"><input className="input" type="number" value={editValues.orden} onChange={(e) => setEditValues({ ...editValues, orden: Number(e.target.value) })} /></td>
                   <td className="px-4 py-2"><input className="input" value={editValues.nombre} onChange={(e) => setEditValues({ ...editValues, nombre: e.target.value })} /></td>
                   <td className="px-4 py-2"><input className="input" value={editValues.especialidad} onChange={(e) => setEditValues({ ...editValues, especialidad: e.target.value })} /></td>
@@ -140,6 +158,14 @@ export function PonentesManager({ ponentes }: { ponentes: Ponente[] }) {
                 </tr>
               ) : (
                 <tr key={p.id} className="border-t border-border">
+                  <td className="px-4 py-3">
+                    {p.foto_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- miniatura en admin, no imagen del sitio público
+                      <img src={p.foto_url} alt="" className="h-10 w-10 rounded-lg border border-border object-cover" />
+                    ) : (
+                      <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-border text-xs text-body/30">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-body/60">{p.orden}</td>
                   <td className="px-4 py-3 font-medium text-ink">{p.nombre}</td>
                   <td className="px-4 py-3 text-body/70">{p.especialidad}</td>
@@ -154,7 +180,7 @@ export function PonentesManager({ ponentes }: { ponentes: Ponente[] }) {
               )
             )}
             {ponentes.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-body/50">Aún no hay ponentes registrados.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-body/50">Aún no hay ponentes registrados.</td></tr>
             )}
           </tbody>
         </table>

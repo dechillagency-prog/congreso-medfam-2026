@@ -40,14 +40,12 @@ Cada archivo es idempotente (usa `if not exists` / `on conflict`), así que si a
 falla a medio camino puedes corregir y volver a correr el mismo archivo sin duplicar
 nada.
 
-### 3. Cargar datos de ejemplo (opcional pero recomendado para probar)
+### 3. Cargar contenido real
 
-```
-supabase/seed.sql
-```
-
-Crea 4 ponentes, 6 conferencias, 3 patrocinadores, 1 encuesta y 1 registro de prueba —
-todo con datos ficticios que se reemplazan después desde el dashboard.
+El sitio corre sin datos de ejemplo — `supabase/seed.sql` quedó intencionalmente vacío
+(ver el comentario dentro del archivo) para que un re-run accidental no reinserte
+contenido ficticio. Todo el contenido (ponentes, programa, patrocinadores) se carga
+desde `/admin/dashboard` una vez que inicias sesión con tu usuario admin.
 
 ### 4. Crear tu usuario administrador
 
@@ -199,8 +197,14 @@ types/
 - **Fotografías reales** del congreso en `/public/images` (el PRD pide explícitamente
   no usar stock con apariencia falsa).
 - **Proveedor de correo** (Resend/SendGrid) — ver `lib/email/README.md`.
-- **Aviso de privacidad** — falta la página `/aviso-privacidad` enlazada desde el
-  formulario de registro.
+- **Aviso de privacidad** — falta crear la página `/aviso-privacidad` con el texto legal
+  real. El checkbox de registro hoy muestra el texto sin enlace (a propósito, para no
+  apuntar a una página inexistente) — en cuanto exista la página, restaurar el link en
+  `components/forms/registro-form.tsx`.
+- **Favicon, ícono de iOS y og-cover.jpg** — `public/favicon.ico`,
+  `public/apple-touch-icon.png` y `public/images/og-cover.jpg` son placeholders
+  generados con la identidad visual actual (ver nota en el commit); reemplazar por los
+  definitivos antes de publicar.
 - Las 8 funciones futuras listadas arriba tienen el esquema listo pero no la interfaz
   (pantalla de escaneo QR, generación de PDF, envío de correos, panel de
   estadísticas, exportación Excel, encuestas del lado del asistente).

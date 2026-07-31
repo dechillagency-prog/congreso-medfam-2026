@@ -4,8 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Loader2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SubidaImagen } from "@/components/admin/subida-imagen";
 import type { Patrocinador, CategoriaPatrocinio } from "@/types";
-import { crearPatrocinador, actualizarPatrocinador, eliminarPatrocinador } from "@/app/admin/dashboard/patrocinadores/actions";
+import {
+  crearPatrocinador,
+  actualizarPatrocinador,
+  eliminarPatrocinador,
+  subirLogoPatrocinador,
+} from "@/app/admin/dashboard/patrocinadores/actions";
 
 type FormValues = { nombre: string; categoria_id: string; logo_url: string; url: string; orden: number };
 
@@ -82,7 +88,14 @@ export function PatrocinadoresManager({ patrocinadores, categorias }: { patrocin
           <select className="input" value={nuevo.categoria_id} onChange={(e) => setNuevo({ ...nuevo, categoria_id: e.target.value })}>
             {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
           </select>
-          <input className="input sm:col-span-2" placeholder="URL del logo" value={nuevo.logo_url} onChange={(e) => setNuevo({ ...nuevo, logo_url: e.target.value })} />
+          <SubidaImagen
+            className="sm:col-span-2"
+            label="URL del logo"
+            value={nuevo.logo_url}
+            onChange={(url) => setNuevo({ ...nuevo, logo_url: url })}
+            accion={subirLogoPatrocinador}
+            campoArchivo="logo"
+          />
           <input className="input" placeholder="Sitio web (opcional)" value={nuevo.url} onChange={(e) => setNuevo({ ...nuevo, url: e.target.value })} />
           <input className="input" type="number" placeholder="Orden" value={nuevo.orden} onChange={(e) => setNuevo({ ...nuevo, orden: Number(e.target.value) })} />
           <div className="flex gap-2 sm:col-span-2">
@@ -116,7 +129,15 @@ export function PatrocinadoresManager({ patrocinadores, categorias }: { patrocin
                       {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                     </select>
                   </td>
-                  <td className="px-4 py-2"><input className="input" value={editValues.logo_url} onChange={(e) => setEditValues({ ...editValues, logo_url: e.target.value })} /></td>
+                  <td className="px-4 py-2 min-w-[280px]">
+                    <SubidaImagen
+                      label="URL del logo"
+                      value={editValues.logo_url}
+                      onChange={(url) => setEditValues({ ...editValues, logo_url: url })}
+                      accion={subirLogoPatrocinador}
+                      campoArchivo="logo"
+                    />
+                  </td>
                   <td className="px-4 py-2">
                     <div className="flex gap-2">
                       <button disabled={isPending} onClick={() => guardarEdicion(p.id)} className="text-primary"><Check className="h-4 w-4" /></button>

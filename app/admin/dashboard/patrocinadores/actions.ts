@@ -2,11 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { subirImagenAdmin, type SubirImagenResult } from "@/lib/supabase/storage";
 import type { TablesInsert, TablesUpdate } from "@/types/supabase";
 
 export interface AccionResult {
   success: boolean;
   message?: string;
+}
+
+export async function subirLogoPatrocinador(formData: FormData): Promise<SubirImagenResult> {
+  return subirImagenAdmin("patrocinadores", formData.get("logo") as File | null);
 }
 
 export async function crearPatrocinador(data: TablesInsert<"patrocinadores">): Promise<AccionResult> {

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CategoriaPatrocinio } from "@/types";
 import { crearCategoria, actualizarCategoria, eliminarCategoria } from "@/app/admin/dashboard/categorias/actions";

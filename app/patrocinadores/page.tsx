@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { esUrlImagenValida, esImagenOptimizablePorNextImage } from "@/lib/utils/imagen";
 import type { PatrocinadorConCategoria, CategoriaPatrocinio } from "@/types";
 
 export default async function PatrocinadoresPage() {
@@ -41,9 +42,23 @@ export default async function PatrocinadoresPage() {
                       href={p.url ?? "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="relative h-16 w-40 grayscale transition-all hover:grayscale-0"
+                      className="relative flex h-16 w-40 items-center justify-center"
                     >
-                      <Image src={p.logo_url} alt={p.nombre} fill sizes="160px" className="object-contain" />
+                      {p.logo_url && esUrlImagenValida(p.logo_url) ? (
+                        <Image
+                          src={p.logo_url}
+                          alt={p.nombre}
+                          fill
+                          sizes="160px"
+                          unoptimized={!esImagenOptimizablePorNextImage(p.logo_url)}
+                          className="object-contain grayscale transition-all hover:grayscale-0"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-border bg-surface px-3 text-center">
+                          <span className="line-clamp-1 text-xs font-semibold text-ink">{p.nombre}</span>
+                          <span className="text-[10px] uppercase tracking-wide text-body/40">Logo pendiente</span>
+                        </div>
+                      )}
                     </a>
                   ))}
                 </div>

@@ -13,6 +13,7 @@ export const TIPOS_INSCRIPCION = [
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+const ACCEPTED_CARTA_FEDERADA_TYPES = ["application/pdf"];
 
 export const registroSchema = z.object({
   nombre: z
@@ -43,5 +44,14 @@ export function validarComprobante(file: File | null): string | null {
   if (!file) return "Sube tu comprobante de pago";
   if (file.size > MAX_FILE_SIZE) return "El archivo no debe exceder 5MB";
   if (!ACCEPTED_FILE_TYPES.includes(file.type)) return "Formato no permitido (usa JPG, PNG o PDF)";
+  return null;
+}
+
+// La Carta Federada solo es obligatoria para "Socios Federados".
+export function validarCartaFederada(file: File | null, tipoInscripcion: string): string | null {
+  if (tipoInscripcion !== "federado") return null;
+  if (!file) return "Sube tu Carta Federada";
+  if (file.size > MAX_FILE_SIZE) return "El archivo no debe exceder 5MB";
+  if (!ACCEPTED_CARTA_FEDERADA_TYPES.includes(file.type)) return "Formato no permitido (usa PDF)";
   return null;
 }

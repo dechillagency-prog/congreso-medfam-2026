@@ -11,6 +11,7 @@ import {
   ESTADOS_MX,
   TIPOS_INSCRIPCION,
   validarComprobante,
+  validarCartaFederada,
 } from "@/lib/validations/registro";
 import { registrarAsistente, type RegistroActionState } from "@/app/registro/actions";
 
@@ -19,15 +20,20 @@ const initialState: RegistroActionState = { success: false, message: "" };
 export function RegistroForm() {
   const [state, formAction, pending] = useActionState(registrarAsistente, initialState);
   const [archivoError, setArchivoError] = useState<string | null>(null);
+  const [cartaError, setCartaError] = useState<string | null>(null);
 
   const {
     register,
     formState: { errors },
     trigger,
+    watch,
   } = useForm<RegistroFormValues>({
     resolver: zodResolver(registroSchema),
     mode: "onBlur",
   });
+
+  const tipoInscripcion = watch("tipo_inscripcion");
+  const esFederado = tipoInscripcion === "federado";
 
   if (state.success) {
     return (
@@ -56,12 +62,20 @@ export function RegistroForm() {
 
   const file = fileInput?.files?.[0] ?? null;
 
+  const cartaInput = form.elements.namedItem(
+    "carta_federada"
+  ) as HTMLInputElement | null;
+
+  const cartaFile = cartaInput?.files?.[0] ?? null;
+
   const valid = await trigger();
   const fileErr = validarComprobante(file);
+  const cartaErr = validarCartaFederada(cartaFile, tipoInscripcion ?? "");
 
   setArchivoError(fileErr);
+  setCartaError(cartaErr);
 
-  if (!valid || fileErr) {
+  if (!valid || fileErr || cartaErr) {
     e.preventDefault();
   }
 }}
@@ -105,6 +119,22 @@ export function RegistroForm() {
         </Field>
       </div>
 
+      {esFederado && (
+        <Field label="Carta Federada (PDF, máx. 5MB)" error={cartaError ?? undefined}>
+          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-surface px-6 py-8 text-center transition-colors hover:border-primary">
+            <UploadCloud className="h-6 w-6 text-primary" />
+            <span className="text-sm text-body/70">Arrastra tu Carta Federada o haz clic para subirla</span>
+            <input
+              type="file"
+              name="carta_federada"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => setCartaError(validarCartaFederada(e.target.files?.[0] ?? null, tipoInscripcion ?? ""))}
+            />
+          </label>
+        </Field>
+      )}
+
       <Field label="Comprobante de pago (JPG, PNG o PDF, máx. 5MB)" error={archivoError ?? undefined}>
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-surface px-6 py-8 text-center transition-colors hover:border-primary">
           <UploadCloud className="h-6 w-6 text-primary" />
@@ -119,12 +149,11 @@ export function RegistroForm() {
         </label>
       </Field>
 
+      {/* PENDIENTE: falta crear la página /aviso-privacidad con el texto legal real.
+          Mientras tanto el checkbox queda como texto plano, sin enlace roto. */}
       <label className="flex items-start gap-3 text-sm text-body/70">
         <input {...register("aceptaPrivacidad")} name="aceptaPrivacidad" type="checkbox" className="mt-1" />
-        <span>
-          He leído y acepto el{" "}
-          <a href="/aviso-privacidad" className="text-primary underline">aviso de privacidad</a>.
-        </span>
+        <span>He leído y acepto el aviso de privacidad.</span>
       </label>
       {errors.aceptaPrivacidad && (
         <p className="text-xs text-red-600">{errors.aceptaPrivacidad.message}</p>

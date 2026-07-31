@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { MapPin, Mail, Phone } from "lucide-react";
+import { MapPin, Mail, Phone, Facebook } from "lucide-react";
 import { CONTACTO_ITEMS, CONTACTO_UBICACION } from "@/content/contacto";
 
 const CORREO = CONTACTO_ITEMS.find((item) => item.tipo === "correo")!.valor;
 const TELEFONO = CONTACTO_ITEMS.find((item) => item.tipo === "telefono")!.valor;
+const FACEBOOK = CONTACTO_ITEMS.find((item) => item.tipo === "facebook")!;
 const { ciudad, estado, pais } = CONTACTO_UBICACION;
 
 export function Footer() {
@@ -47,6 +48,16 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0" /> {TELEFONO}
+              </li>
+              <li>
+                <a
+                  href={FACEBOOK.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-white"
+                >
+                  <Facebook className="h-4 w-4 shrink-0" /> {FACEBOOK.valor}
+                </a>
               </li>
             </ul>
           </div>

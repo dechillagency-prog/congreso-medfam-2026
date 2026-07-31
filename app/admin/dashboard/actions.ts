@@ -23,6 +23,7 @@ export async function aprobarRegistro(id: string): Promise<AccionResult> {
   }
 
   revalidatePath("/admin/dashboard");
+  revalidatePath(`/admin/dashboard/${id}`);
   return { success: true };
 }
 
@@ -38,6 +39,7 @@ export async function rechazarRegistro(id: string, motivo: string): Promise<Acci
   }
 
   revalidatePath("/admin/dashboard");
+  revalidatePath(`/admin/dashboard/${id}`);
   return { success: true };
 }
 
@@ -54,5 +56,6 @@ export async function reabrirRegistro(id: string): Promise<AccionResult> {
   }
 
   revalidatePath("/admin/dashboard");
+  revalidatePath(`/admin/dashboard/${id}`);
   return { success: true };
 }

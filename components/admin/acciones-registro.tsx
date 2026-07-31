@@ -72,8 +72,11 @@ export function AccionesRegistro({ id, estatusActual }: { id: string; estatusAct
     <div className="flex items-center gap-2">
       <button
         disabled={isPending}
-        onClick={() => startTransition(async () => { await aprobarRegistro(id); })}
-        className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
+onClick={() =>
+  startTransition(async () => {
+    await aprobarRegistro(id);
+  })
+}        className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
       >
         {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
         Aprobar

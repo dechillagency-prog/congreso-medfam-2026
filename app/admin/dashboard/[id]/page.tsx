@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, MapPin, Stethoscope, Calendar, FileText } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getComprobanteSignedUrl, getCartaFederadaSignedUrl } from "@/lib/supabase/storage";
+import { getConfiguracion } from "@/lib/config";
 import type { Registro, Comprobante } from "@/types";
 import { EstatusBadge } from "@/components/admin/estatus-badge";
 import { AccionesRegistro } from "@/components/admin/acciones-registro";
+import { WhatsAppConfirmacionLink } from "@/components/admin/whatsapp-confirmacion-link";
 
 export default async function AdminRegistroDetallePage({
   params,
@@ -51,6 +53,8 @@ export default async function AdminRegistroDetallePage({
     ? await getCartaFederadaSignedUrl(r.carta_federada_url)
     : null;
 
+  const ligaComunidad = await getConfiguracion<string | null>("whatsapp_comunidad_url", null);
+
   return (
     <section className="mx-auto max-w-5xl px-6 py-12">
       <Link href="/admin/dashboard" className="flex items-center gap-1.5 text-sm text-body/60 hover:text-ink">
@@ -66,7 +70,16 @@ export default async function AdminRegistroDetallePage({
             {r.codigo_qr && <span className="font-mono text-xs text-body/40">{r.codigo_qr}</span>}
           </div>
         </div>
-        <AccionesRegistro id={r.id} estatusActual={r.estatus_pago} />
+        <div className="flex flex-col items-end gap-3">
+          <AccionesRegistro id={r.id} estatusActual={r.estatus_pago} />
+          <WhatsAppConfirmacionLink
+            nombre={r.nombre}
+            folio={r.folio}
+            celular={r.celular}
+            estatusPago={r.estatus_pago}
+            ligaComunidad={ligaComunidad}
+          />
+        </div>
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">

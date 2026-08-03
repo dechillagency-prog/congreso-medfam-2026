@@ -55,3 +55,10 @@ export function validarCartaFederada(file: File | null, tipoInscripcion: string)
   if (!ACCEPTED_CARTA_FEDERADA_TYPES.includes(file.type)) return "Formato no permitido (usa PDF)";
   return null;
 }
+
+// Chequeo rápido de formato antes de consultar el backend por un correo
+// duplicado — evita disparar la consulta con un correo a medio escribir.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export function esCorreoValido(correo: string): boolean {
+  return EMAIL_REGEX.test(correo.trim());
+}

@@ -9,8 +9,8 @@ export type ContactoItem = {
   href: string;
 };
 
-const CORREO = "contacto@congresomedfam2026.mx";
-const TELEFONO = "(871) 000 0000";
+const CORREO = "sosamauro@hotmail.com";
+const TELEFONO = "(871) 101 5289";
 const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=100094048287371";
 const FACEBOOK_LABEL = "XXV Congreso Regional Noreste";
 

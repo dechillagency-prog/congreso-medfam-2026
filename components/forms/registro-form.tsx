@@ -3,9 +3,10 @@
 import { useActionState, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CampoArchivo } from "@/components/forms/campo-archivo";
+import { cn } from "@/lib/utils/cn";
 import {
   registroSchema,
   type RegistroFormValues,
@@ -13,10 +14,44 @@ import {
   TIPOS_INSCRIPCION,
   validarComprobante,
   validarCartaFederada,
+  esCorreoValido,
 } from "@/lib/validations/registro";
-import { registrarAsistente, type RegistroActionState } from "@/app/registro/actions";
+import {
+  registrarAsistente,
+  verificarCorreoExistente,
+  type RegistroActionState,
+  type EstadoCorreoRegistro,
+} from "@/app/registro/actions";
 
 const initialState: RegistroActionState = { success: false, message: "" };
+
+const AVISOS_CORREO: Record<
+  Exclude<EstadoCorreoRegistro, null>,
+  { clase: string; icono: React.ReactNode; titulo: string; detalle: string; bloquea: boolean }
+> = {
+  pendiente: {
+    clase: "border-amber-200 bg-amber-50 text-amber-800",
+    icono: <AlertTriangle className="h-4 w-4 shrink-0" />,
+    titulo: "Ya encontramos un registro con este correo electrónico.",
+    detalle:
+      "Si deseas actualizar tu comprobante o corregir información, comunícate con el comité organizador para evitar registros duplicados.",
+    bloquea: true,
+  },
+  confirmado: {
+    clase: "border-green-200 bg-green-50 text-green-800",
+    icono: <CheckCircle2 className="h-4 w-4 shrink-0" />,
+    titulo: "Este correo ya cuenta con una inscripción aprobada.",
+    detalle: "No es necesario realizar un nuevo registro.",
+    bloquea: true,
+  },
+  rechazado: {
+    clase: "border-blue-200 bg-blue-50 text-blue-800",
+    icono: <Info className="h-4 w-4 shrink-0" />,
+    titulo: "Encontramos un registro anterior rechazado.",
+    detalle: "Puedes realizar nuevamente tu inscripción utilizando este mismo correo.",
+    bloquea: false,
+  },
+};
 
 export function RegistroForm() {
   const [state, formAction, pending] = useActionState(registrarAsistente, initialState);
@@ -24,6 +59,8 @@ export function RegistroForm() {
   const [archivoError, setArchivoError] = useState<string | null>(null);
   const [carta, setCarta] = useState<File | null>(null);
   const [cartaError, setCartaError] = useState<string | null>(null);
+  const [estadoCorreo, setEstadoCorreo] = useState<EstadoCorreoRegistro>(null);
+  const [verificandoCorreo, setVerificandoCorreo] = useState(false);
 
   const {
     register,
@@ -37,6 +74,23 @@ export function RegistroForm() {
 
   const tipoInscripcion = watch("tipo_inscripcion");
   const esFederado = tipoInscripcion === "federado";
+  const correoBloqueado = estadoCorreo != null && AVISOS_CORREO[estadoCorreo].bloquea;
+
+  async function verificarCorreo(correo: string) {
+    if (!esCorreoValido(correo)) {
+      setEstadoCorreo(null);
+      return;
+    }
+    setVerificandoCorreo(true);
+    try {
+      const estado = await verificarCorreoExistente(correo);
+      setEstadoCorreo(estado);
+    } finally {
+      setVerificandoCorreo(false);
+    }
+  }
+
+  const registroCorreo = register("correo");
 
   if (state.success) {
     return (
@@ -64,7 +118,7 @@ export function RegistroForm() {
   setArchivoError(fileErr);
   setCartaError(cartaErr);
 
-  if (!valid || fileErr || cartaErr) {
+  if (!valid || fileErr || cartaErr || correoBloqueado) {
     e.preventDefault();
   }
 }}
@@ -76,7 +130,17 @@ export function RegistroForm() {
         </Field>
 
         <Field label="Correo electrónico" error={errors.correo?.message}>
-          <input {...register("correo")} name="correo" type="email" className="input" placeholder="tu@correo.com" />
+          <input
+            {...registroCorreo}
+            name="correo"
+            type="email"
+            className="input"
+            placeholder="tu@correo.com"
+            onBlur={(e) => {
+              registroCorreo.onBlur(e);
+              verificarCorreo(e.target.value);
+            }}
+          />
         </Field>
 
         <Field label="Celular (10 dígitos)" error={errors.celular?.message}>
@@ -150,7 +214,17 @@ export function RegistroForm() {
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{state.message}</p>
       )}
 
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
+      {estadoCorreo && (
+        <div className={cn("rounded-xl border px-4 py-3 text-sm", AVISOS_CORREO[estadoCorreo].clase)}>
+          <p className="flex items-center gap-2 font-semibold">
+            {AVISOS_CORREO[estadoCorreo].icono}
+            {AVISOS_CORREO[estadoCorreo].titulo}
+          </p>
+          <p className="mt-1">{AVISOS_CORREO[estadoCorreo].detalle}</p>
+        </div>
+      )}
+
+      <Button type="submit" size="lg" className="w-full" disabled={pending || verificandoCorreo || correoBloqueado}>
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {pending ? "Enviando..." : "Enviar Registro"}
       </Button>

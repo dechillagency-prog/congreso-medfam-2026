@@ -13,6 +13,44 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 const ACCEPTED_CARTA_FEDERADA_TYPES = ["application/pdf"];
 
+export type EstadoCorreoRegistro = "pendiente" | "confirmado" | "rechazado" | null;
+
+/**
+ * Revisa si un correo ya tiene registro(s) y con qué estatus. Un correo
+ * puede tener más de un registro (p. ej. uno rechazado y luego otro nuevo),
+ * así que prioriza el estatus más "activo": confirmado > pendiente >
+ * rechazado. `null` significa que el correo no tiene ningún registro.
+ *
+ * Usa el cliente admin (service_role) a propósito: quien llena el
+ * formulario público no tiene sesión, y `registros` solo es legible por
+ * admins vía RLS — igual que el resto de este archivo.
+ */
+async function obtenerEstadoCorreo(correo: string): Promise<EstadoCorreoRegistro> {
+  const correoNormalizado = correo.trim().toLowerCase();
+  if (!correoNormalizado) return null;
+
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from("registros")
+    .select("estatus_pago")
+    .ilike("correo", correoNormalizado);
+
+  if (!data || data.length === 0) return null;
+  if (data.some((r) => r.estatus_pago === "confirmado")) return "confirmado";
+  if (data.some((r) => r.estatus_pago === "pendiente")) return "pendiente";
+  return "rechazado";
+}
+
+/**
+ * Validación previa en el cliente (onBlur del campo correo). Es solo UX —
+ * la validación que realmente importa se repite dentro de
+ * `registrarAsistente` antes de insertar, porque el cliente nunca es de
+ * fiar.
+ */
+export async function verificarCorreoExistente(correo: string): Promise<EstadoCorreoRegistro> {
+  return obtenerEstadoCorreo(correo);
+}
+
 export async function registrarAsistente(
   _prev: RegistroActionState,
   formData: FormData
@@ -32,6 +70,20 @@ export async function registrarAsistente(
     return {
       success: false,
       message: parsed.error.issues[0]?.message ?? "Revisa los datos del formulario.",
+    };
+  }
+
+  // No confiar solo en la validación del cliente: se repite aquí antes de
+  // insertar. Pendiente o confirmado bloquean un nuevo registro; rechazado
+  // permite volver a registrarse con el mismo correo.
+  const estadoCorreo = await obtenerEstadoCorreo(parsed.data.correo);
+  if (estadoCorreo === "pendiente" || estadoCorreo === "confirmado") {
+    return {
+      success: false,
+      message:
+        estadoCorreo === "confirmado"
+          ? "Este correo ya cuenta con una inscripción aprobada. No es necesario realizar un nuevo registro."
+          : "Ya encontramos un registro con este correo electrónico. Si deseas actualizar tu comprobante o corregir información, comunícate con el comité organizador para evitar registros duplicados.",
     };
   }
 

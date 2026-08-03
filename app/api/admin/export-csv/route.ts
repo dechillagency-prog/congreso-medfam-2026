@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { formatearFechaHora } from "@/lib/utils/fecha";
 import type { Registro } from "@/types";
+
+// Columnas que son timestamps UTC y deben mostrarse en hora de Monterrey,
+// igual que en el resto del panel — no se toca el valor guardado en la base,
+// solo cómo se escribe en el CSV.
+const COLUMNAS_FECHA = new Set<keyof Registro>(["created_at", "fecha_aprobacion"]);
 
 export async function GET() {
   const supabase = await createClient();
@@ -31,7 +37,14 @@ export async function GET() {
   ];
 
   const rows = registros.map((r) =>
-    headers.map((h) => csvEscape(String(r[h as keyof Registro] ?? ""))).join(",")
+    headers
+      .map((h) => {
+        const clave = h as keyof Registro;
+        const valor = r[clave];
+        const texto = COLUMNAS_FECHA.has(clave) ? formatearFechaHora(valor as string | null) : String(valor ?? "");
+        return csvEscape(texto === "—" ? "" : texto);
+      })
+      .join(",")
   );
 
   const csv = [headers.join(","), ...rows].join("\n");

@@ -3,8 +3,9 @@
 import { useActionState, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, UploadCloud, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CampoArchivo } from "@/components/forms/campo-archivo";
 import {
   registroSchema,
   type RegistroFormValues,
@@ -19,7 +20,9 @@ const initialState: RegistroActionState = { success: false, message: "" };
 
 export function RegistroForm() {
   const [state, formAction, pending] = useActionState(registrarAsistente, initialState);
+  const [archivo, setArchivo] = useState<File | null>(null);
   const [archivoError, setArchivoError] = useState<string | null>(null);
+  const [carta, setCarta] = useState<File | null>(null);
   const [cartaError, setCartaError] = useState<string | null>(null);
 
   const {
@@ -54,23 +57,9 @@ export function RegistroForm() {
     <form
       action={formAction}
       onSubmit={async (e) => {
-  const form = e.currentTarget;
-
-  const fileInput = form.elements.namedItem(
-    "comprobante"
-  ) as HTMLInputElement | null;
-
-  const file = fileInput?.files?.[0] ?? null;
-
-  const cartaInput = form.elements.namedItem(
-    "carta_federada"
-  ) as HTMLInputElement | null;
-
-  const cartaFile = cartaInput?.files?.[0] ?? null;
-
   const valid = await trigger();
-  const fileErr = validarComprobante(file);
-  const cartaErr = validarCartaFederada(cartaFile, tipoInscripcion ?? "");
+  const fileErr = validarComprobante(archivo);
+  const cartaErr = validarCartaFederada(carta, tipoInscripcion ?? "");
 
   setArchivoError(fileErr);
   setCartaError(cartaErr);
@@ -120,34 +109,32 @@ export function RegistroForm() {
       </div>
 
       {esFederado && (
-        <Field label="Carta Federada (PDF, máx. 5MB)" error={cartaError ?? undefined}>
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-surface px-6 py-8 text-center transition-colors hover:border-primary">
-            <UploadCloud className="h-6 w-6 text-primary" />
-            <span className="text-sm text-body/70">Arrastra tu Carta Federada o haz clic para subirla</span>
-            <input
-              type="file"
-              name="carta_federada"
-              accept="application/pdf"
-              className="hidden"
-              onChange={(e) => setCartaError(validarCartaFederada(e.target.files?.[0] ?? null, tipoInscripcion ?? ""))}
-            />
-          </label>
-        </Field>
+        <CampoArchivo
+          name="carta_federada"
+          accept="application/pdf"
+          label="Carta Federada (PDF, máx. 5MB)"
+          dropzoneTexto="Arrastra tu Carta Federada o haz clic para subirla"
+          archivo={carta}
+          error={cartaError}
+          onSeleccionar={(file) => {
+            setCarta(file);
+            setCartaError(validarCartaFederada(file, tipoInscripcion ?? ""));
+          }}
+        />
       )}
 
-      <Field label="Comprobante de pago (JPG, PNG o PDF, máx. 5MB)" error={archivoError ?? undefined}>
-        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-surface px-6 py-8 text-center transition-colors hover:border-primary">
-          <UploadCloud className="h-6 w-6 text-primary" />
-          <span className="text-sm text-body/70">Arrastra tu archivo o haz clic para subirlo</span>
-          <input
-            type="file"
-            name="comprobante"
-            accept="image/jpeg,image/png,application/pdf"
-            className="hidden"
-            onChange={(e) => setArchivoError(validarComprobante(e.target.files?.[0] ?? null))}
-          />
-        </label>
-      </Field>
+      <CampoArchivo
+        name="comprobante"
+        accept="image/jpeg,image/png,application/pdf"
+        label="Comprobante de pago (JPG, PNG o PDF, máx. 5MB)"
+        dropzoneTexto="Arrastra tu archivo o haz clic para subirlo"
+        archivo={archivo}
+        error={archivoError}
+        onSeleccionar={(file) => {
+          setArchivo(file);
+          setArchivoError(validarComprobante(file));
+        }}
+      />
 
       {/* PENDIENTE: falta crear la página /aviso-privacidad con el texto legal real.
           Mientras tanto el checkbox queda como texto plano, sin enlace roto. */}

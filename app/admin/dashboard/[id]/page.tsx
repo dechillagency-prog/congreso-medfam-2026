@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Phone, MapPin, Stethoscope, Calendar, FileText } from 
 import { createAdminClient } from "@/lib/supabase/server";
 import { getComprobanteSignedUrl, getCartaFederadaSignedUrl } from "@/lib/supabase/storage";
 import { getConfiguracion } from "@/lib/config";
+import { formatearFechaHora, formatearFechaHoraCorta } from "@/lib/utils/fecha";
 import type { Registro, Comprobante } from "@/types";
 import { EstatusBadge } from "@/components/admin/estatus-badge";
 import { AccionesRegistro } from "@/components/admin/acciones-registro";
@@ -92,9 +93,7 @@ export default async function AdminRegistroDetallePage({
             <Dato icon={<MapPin className="h-4 w-4" />} label="Estado" value={r.estado} />
             <Dato icon={<Stethoscope className="h-4 w-4" />} label="Especialidad" value={r.especialidad} />
             <Dato icon={<FileText className="h-4 w-4" />} label="Tipo de inscripción" value={r.tipo_inscripcion} />
-            <Dato icon={<Calendar className="h-4 w-4" />} label="Fecha de registro" value={
-              new Date(r.created_at).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })
-            } />
+            <Dato icon={<Calendar className="h-4 w-4" />} label="Fecha de registro" value={formatearFechaHora(r.created_at)} />
           </dl>
         </div>
 
@@ -109,11 +108,7 @@ export default async function AdminRegistroDetallePage({
             />
             <Dato
               label="Fecha de revisión"
-              value={
-                r.fecha_aprobacion
-                  ? new Date(r.fecha_aprobacion).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })
-                  : "—"
-              }
+              value={formatearFechaHora(r.fecha_aprobacion)}
             />
             {r.estatus_pago === "rechazado" && (
               <Dato label="Motivo del rechazo" value={r.motivo_rechazo ?? "No especificado"} />
@@ -143,7 +138,7 @@ export default async function AdminRegistroDetallePage({
               </p>
             )}
             <p className="mt-2 text-xs text-body/40">
-              Subido el {new Date(comprobanteActual.subido_en).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}
+              Subido el {formatearFechaHora(comprobanteActual.subido_en)}
             </p>
           </div>
         ) : (
@@ -190,7 +185,7 @@ export default async function AdminRegistroDetallePage({
               <li key={c.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5 text-sm">
                 <span className="text-body/70">
                   {i === 0 ? "Más reciente — " : ""}
-                  {new Date(c.subido_en).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}
+                  {formatearFechaHoraCorta(c.subido_en)}
                 </span>
                 {c.signedUrl ? (
                   <a href={c.signedUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">

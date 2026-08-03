@@ -205,6 +205,12 @@ types/
   `public/apple-touch-icon.png` y `public/images/og-cover.jpg` son placeholders
   generados con la identidad visual actual (ver nota en el commit); reemplazar por los
   definitivos antes de publicar.
+- **PDF del programa preliminar** — coloca el archivo real en
+  `public/documents/programa-preliminar-xxv-congreso-2026.pdf` (la carpeta `documents/`
+  aún no existe, créala al agregar el archivo). Mientras no exista, `/programa` muestra
+  el botón de descarga deshabilitado con el texto "Programa PDF próximamente
+  disponible" en vez de apuntar a un enlace roto. La ruta está centralizada en
+  `content/programa.ts`.
 - Las 8 funciones futuras listadas arriba tienen el esquema listo pero no la interfaz
   (pantalla de escaneo QR, generación de PDF, envío de correos, panel de
   estadísticas, exportación Excel, encuestas del lado del asistente).

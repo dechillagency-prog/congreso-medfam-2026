@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import type { Registro, EstatusPago, TipoInscripcion } from "@/types";
 import { TIPOS_INSCRIPCION } from "@/lib/validations/registro";
 import { getConfiguracion } from "@/lib/config";
+import { formatearFechaCorta } from "@/lib/utils/fecha";
 import { EstatusBadge } from "@/components/admin/estatus-badge";
 import { AccionesRegistro } from "@/components/admin/acciones-registro";
 import { FiltrosRegistros } from "@/components/admin/filtros-registros";
@@ -237,13 +238,7 @@ export default async function AdminDashboardPage({
                 </td>
 
                 <td className="px-4 py-3 text-body/60">
-                  {new Date(
-                    registro.created_at
-                  ).toLocaleDateString("es-MX", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {formatearFechaCorta(registro.created_at)}
                 </td>
 
                 <td className="px-4 py-3">

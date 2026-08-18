@@ -8,21 +8,23 @@ import { Document, Page, View, Text, Image, Svg, Path, Circle, Font, StyleSheet 
  * Variables dinámicas: nombreCompleto, folio, tipoInscripcion, fechaConfirmacion.
  *
  * Fuentes y assets institucionales (logos, firma) viven en lib/pdf/fonts/ y
- * lib/pdf/assets/ — NO en public/ — y se resuelven con __dirname en vez de
- * process.cwd(). En la Function serverless de Vercel, process.cwd() no
- * garantiza que public/ exista físicamente junto al código (Node File
- * Trace no lo detecta de forma confiable porque la ruta se arma en tiempo
- * de ejecución); __dirname + rutas literales sí lo hace, porque apunta al
- * directorio real del módulo compilado y Vercel puede rastrear estáticamente
- * los archivos que cuelgan de ahí. Ver next.config.mjs (outputFileTracingIncludes)
- * para la garantía adicional de que esos archivos viajan con la Function.
+ * lib/pdf/assets/ — NO en public/. Se resuelven con process.cwd() + la ruta
+ * literal del repo (NO __dirname): Next.js empaqueta este módulo dentro de
+ * .next/server/chunks/ al compilar, así que en runtime __dirname apunta ahí
+ * — no a lib/pdf/ — y el ENOENT solo cambiaba de ruta rota, no se
+ * resolvía. process.cwd() en la Function de Vercel SÍ es el root del
+ * proyecto (/var/task), que es exactamente donde Node File Trace coloca
+ * los archivos incluidos explícitamente por outputFileTracingIncludes en
+ * next.config.mjs (preservando la ruta del repo, lib/pdf/fonts/...,
+ * lib/pdf/assets/...) — confirmado inspeccionando el output de
+ * `npm run build` directamente, no solo los .nft.json.
  *
  * Pendiente/omitido a propósito:
  *  - Fotografía real del auditorio (se usa una foto real existente del sitio como sustituto temporal).
  */
 
-const fontsDir = path.join(__dirname, "fonts");
-const assetsDir = path.join(__dirname, "assets");
+const fontsDir = path.join(process.cwd(), "lib", "pdf", "fonts");
+const assetsDir = path.join(process.cwd(), "lib", "pdf", "assets");
 const LOGO_CONGRESO = path.join(assetsDir, "logo-congreso.png");
 const LOGO_ASOCIACION = path.join(assetsDir, "logo-asociacion.png");
 const FIRMA_MAURO = path.join(assetsDir, "firma-mauro.png");

@@ -26,10 +26,11 @@ export async function generarCartaCongresistaPdf(datos: DatosCartaCongresista): 
   });
 
   // Copia dedicada en lib/pdf/assets/ (no la de public/images/, que usan
-  // otras páginas del sitio) — misma razón que fontsDir/assetsDir en
-  // carta-congresista.tsx: __dirname se resuelve de forma confiable dentro
-  // de la Function de Vercel, process.cwd() + public/ no.
-  const fotoPath = path.join(__dirname, "assets", "congreso-1.jpg");
+  // otras páginas del sitio). process.cwd() + ruta literal del repo, NO
+  // __dirname — ver el comentario en carta-congresista.tsx para el porqué
+  // (Next empaqueta este módulo en .next/server/chunks/, así que __dirname
+  // en runtime no apunta a lib/pdf/).
+  const fotoPath = path.join(process.cwd(), "lib", "pdf", "assets", "congreso-1.jpg");
 
   return renderToBuffer(
     <CartaCongresista

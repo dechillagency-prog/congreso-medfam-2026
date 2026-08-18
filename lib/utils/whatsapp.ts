@@ -75,8 +75,20 @@ export function construirMensajeConfirmacion({
   return lineas.join("\n");
 }
 
-/** Construye el enlace wa.me con el mensaje ya codificado. */
+/** Construye el enlace wa.me con el mensaje ya codificado (mejor compatibilidad en móvil). */
 export function construirEnlaceWhatsApp(celular: string, mensaje: string): string {
   const numero = normalizarCelularMx(celular);
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+}
+
+/**
+ * Misma liga que construirEnlaceWhatsApp, pero apuntando a WhatsApp Web —
+ * en desktop abre directo la conversación en web.whatsapp.com con el
+ * mensaje precargado, en vez de pasar por la pantalla intermedia de
+ * wa.me que sugiere "abrir la app". Mismo número, mismo mensaje, sin usar
+ * la API de WhatsApp Business.
+ */
+export function construirEnlaceWhatsAppWeb(celular: string, mensaje: string): string {
+  const numero = normalizarCelularMx(celular);
+  return `https://web.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(mensaje)}`;
 }

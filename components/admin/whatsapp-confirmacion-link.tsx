@@ -7,14 +7,21 @@ import { cn } from "@/lib/utils/cn";
 
 type Estado = "idle" | "loading" | "error" | "bloqueado";
 
+/** Heurística estándar de user-agent — no hay forma 100% confiable sin ella. */
+function esDispositivoMovil(): boolean {
+  return /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+}
+
 /**
  * Botón de confirmación por WhatsApp. Al hacer clic:
  * 1. Llama a la Server Action, que genera (o reutiliza) la Carta de
  *    Congresista y arma el mensaje con su liga.
- * 2. Solo cuando la respuesta está lista abre wa.me — nunca se abre una
- *    pestaña vacía primero.
- * Sigue siendo solo un enlace manual a wa.me: no envía nada por sí mismo,
- * el admin revisa el mensaje y lo envía él mismo desde WhatsApp.
+ * 2. Solo cuando la respuesta está lista abre WhatsApp — nunca se abre una
+ *    pestaña vacía primero. En móvil usa wa.me (mejor compatibilidad con la
+ *    app); en desktop usa WhatsApp Web directo (evita la pantalla
+ *    intermedia de wa.me que ahí solo sugiere "usar WhatsApp Web").
+ * Sigue siendo solo un enlace manual: no envía nada por sí mismo, el admin
+ * revisa el mensaje y lo envía él mismo desde WhatsApp.
  */
 export function WhatsAppConfirmacionLink({
   id,
@@ -53,13 +60,17 @@ export function WhatsAppConfirmacionLink({
       return;
     }
 
+    const enlaceElegido = esDispositivoMovil()
+      ? resultado.data.enlaceWhatsApp
+      : resultado.data.enlaceWhatsAppWeb;
+
     // El navegador puede bloquear window.open() aquí porque ya no ocurre de
     // forma síncrona dentro del clic (hubo un await de por medio). Si eso
     // pasa, no se pierde el enlace: se deja un botón manual para abrirlo.
-    const ventana = window.open(resultado.data.enlaceWhatsApp, "_blank", "noopener,noreferrer");
+    const ventana = window.open(enlaceElegido, "_blank", "noopener,noreferrer");
     if (!ventana) {
       setEstado("bloqueado");
-      setEnlacePendiente(resultado.data.enlaceWhatsApp);
+      setEnlacePendiente(enlaceElegido);
       return;
     }
 

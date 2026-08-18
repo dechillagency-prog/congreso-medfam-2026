@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerOCrearCartaCongresista } from "@/lib/supabase/carta-congresista";
-import { construirMensajeConfirmacion, construirEnlaceWhatsApp } from "@/lib/utils/whatsapp";
+import { construirMensajeConfirmacion, construirEnlaceWhatsApp, construirEnlaceWhatsAppWeb } from "@/lib/utils/whatsapp";
 import { getConfiguracion } from "@/lib/config";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -68,11 +68,13 @@ export interface PrepararConfirmacionWhatsAppResult {
   success: boolean;
   message?: string;
   data?: {
-    /** Enlace wa.me final, listo para abrir. */
+    /** Enlace wa.me — mejor compatibilidad en móvil. */
     enlaceWhatsApp: string;
+    /** Mismo número/mensaje, apuntando a WhatsApp Web — mejor experiencia en desktop. */
+    enlaceWhatsAppWeb: string;
     /** true = la carta se generó en esta llamada; false = ya existía y se reutilizó. */
     cartaFueGenerada: boolean;
-    /** Liga pública /carta/[token] — la misma que ya va incluida en enlaceWhatsApp. */
+    /** Liga pública /carta/[token] — la misma que ya va incluida en ambos enlaces. */
     ligaCarta: string;
   };
 }
@@ -131,6 +133,7 @@ export async function prepararConfirmacionWhatsApp(id: string): Promise<Preparar
     ligaCarta,
   });
   const enlaceWhatsApp = construirEnlaceWhatsApp(registro.celular, mensaje);
+  const enlaceWhatsAppWeb = construirEnlaceWhatsAppWeb(registro.celular, mensaje);
 
   const { error: updateError } = await supabase
     .from("registros")
@@ -149,6 +152,6 @@ export async function prepararConfirmacionWhatsApp(id: string): Promise<Preparar
 
   return {
     success: true,
-    data: { enlaceWhatsApp, cartaFueGenerada, ligaCarta },
+    data: { enlaceWhatsApp, enlaceWhatsAppWeb, cartaFueGenerada, ligaCarta },
   };
 }

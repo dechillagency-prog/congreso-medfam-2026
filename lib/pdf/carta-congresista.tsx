@@ -1,6 +1,7 @@
 import React from "react";
 import path from "node:path";
 import { Document, Page, View, Text, Image, Svg, Path, Circle, Font, StyleSheet } from "@react-pdf/renderer";
+import { construirSaludoCarta } from "@/lib/utils/saludo";
 
 /**
  * Reconstrucción fiel del diseño de referencia "Carta de Congresista".
@@ -605,7 +606,7 @@ export function CartaCongresista({
             <Text style={styles.eyebrow}>BIENVENIDO(A) AL</Text>
             <Text style={styles.h1}>XXV CONGRESO REGIONAL NORESTE DE MEDICINA FAMILIAR</Text>
 
-            <Text style={styles.salutation}>Estimado Dr. {nombreCompleto},</Text>
+            <Text style={styles.salutation}>{construirSaludoCarta(nombreCompleto)}</Text>
 
             <Text style={styles.paragraph}>
               En nombre de la Asociación Lagunera de Especialistas en Medicina Familiar y Residentes A.C.

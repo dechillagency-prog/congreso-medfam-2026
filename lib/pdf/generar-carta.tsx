@@ -3,7 +3,6 @@ import path from "node:path";
 import { renderToBuffer } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import { CartaCongresista } from "./carta-congresista";
-import { PROGRAMA_PDF } from "@/content/programa";
 import { SITE_URL } from "@/lib/site-url";
 
 export interface DatosCartaCongresista {
@@ -20,13 +19,17 @@ export interface DatosCartaCongresista {
  * llame.
  */
 export async function generarCartaCongresistaPdf(datos: DatosCartaCongresista): Promise<Buffer> {
-  const qrDataUrl = await QRCode.toDataURL(`${SITE_URL}${PROGRAMA_PDF.ruta}`, {
+  const qrDataUrl = await QRCode.toDataURL(`${SITE_URL}/programa`, {
     margin: 0,
     width: 300,
     color: { dark: "#0F172A", light: "#FFFFFF" },
   });
 
-  const fotoPath = path.join(process.cwd(), "public", "images", "congreso-1.jpg");
+  // Copia dedicada en lib/pdf/assets/ (no la de public/images/, que usan
+  // otras páginas del sitio) — misma razón que fontsDir/assetsDir en
+  // carta-congresista.tsx: __dirname se resuelve de forma confiable dentro
+  // de la Function de Vercel, process.cwd() + public/ no.
+  const fotoPath = path.join(__dirname, "assets", "congreso-1.jpg");
 
   return renderToBuffer(
     <CartaCongresista

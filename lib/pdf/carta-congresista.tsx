@@ -7,16 +7,22 @@ import { Document, Page, View, Text, Image, Svg, Path, Circle, Font, StyleSheet 
  * Texto institucional fijo transcrito directamente de la imagen de referencia.
  * Variables dinámicas: nombreCompleto, folio, tipoInscripcion, fechaConfirmacion.
  *
- * Assets institucionales reales (logos, firma) viven en public/images/carta/
- * y se referencian aquí directamente — no varían por registro, a diferencia
- * de qrDataUrl (por registro) o fotoPath (sustituto temporal explícito).
+ * Fuentes y assets institucionales (logos, firma) viven en lib/pdf/fonts/ y
+ * lib/pdf/assets/ — NO en public/ — y se resuelven con __dirname en vez de
+ * process.cwd(). En la Function serverless de Vercel, process.cwd() no
+ * garantiza que public/ exista físicamente junto al código (Node File
+ * Trace no lo detecta de forma confiable porque la ruta se arma en tiempo
+ * de ejecución); __dirname + rutas literales sí lo hace, porque apunta al
+ * directorio real del módulo compilado y Vercel puede rastrear estáticamente
+ * los archivos que cuelgan de ahí. Ver next.config.mjs (outputFileTracingIncludes)
+ * para la garantía adicional de que esos archivos viajan con la Function.
  *
  * Pendiente/omitido a propósito:
  *  - Fotografía real del auditorio (se usa una foto real existente del sitio como sustituto temporal).
  */
 
-const fontsDir = path.join(process.cwd(), "public", "fonts");
-const assetsDir = path.join(process.cwd(), "public", "images", "carta");
+const fontsDir = path.join(__dirname, "fonts");
+const assetsDir = path.join(__dirname, "assets");
 const LOGO_CONGRESO = path.join(assetsDir, "logo-congreso.png");
 const LOGO_ASOCIACION = path.join(assetsDir, "logo-asociacion.png");
 const FIRMA_MAURO = path.join(assetsDir, "firma-mauro.png");
@@ -69,7 +75,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 28,
-    paddingVertical: 8,
+    paddingVertical: 0,
     borderBottomWidth: 2,
     borderBottomColor: COLOR.navy,
   },
@@ -81,10 +87,16 @@ const styles = StyleSheet.create({
   // Logo oficial del Congreso: ya trae "XXV", nombre completo y año
   // dibujados en el propio archivo, así que es el único elemento de
   // identidad en esta zona (evita duplicar el título en texto vectorial).
-  // ~2.3x el tamaño anterior (76x60) para que sea el elemento principal.
+  // El archivo real (1536x1024, aspecto 1.5) trae relleno transparente a
+  // la derecha del círculo — con la caja anterior (175x138, aspecto 1.268)
+  // ese relleno se traducía en una franja vacía invisible arriba/abajo del
+  // logo dentro de su propia caja. La altura aquí (175/1.5) hace que la
+  // caja coincida exactamente con el aspecto real del archivo, así que el
+  // logo se renderiza sin ese margen interno perdido — pero al mismo
+  // tamaño visible que antes (175 de ancho, mismo contenido visible).
   headerLogo: {
     width: 175,
-    height: 138,
+    height: 116.7,
     objectFit: "contain",
   },
   dateBadge: {

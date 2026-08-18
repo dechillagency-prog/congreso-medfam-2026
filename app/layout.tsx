@@ -3,6 +3,7 @@ import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { SITE_URL } from "@/lib/site-url";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -15,8 +16,6 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
 });
-
-const SITE_URL = "https://congresomedfam2026.mx";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

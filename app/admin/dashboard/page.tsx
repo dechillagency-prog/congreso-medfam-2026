@@ -250,11 +250,12 @@ export default async function AdminDashboardPage({
 
                 <td className="px-4 py-3">
                   <WhatsAppConfirmacionLink
+                    id={registro.id}
                     nombre={registro.nombre}
                     folio={registro.folio}
-                    celular={registro.celular}
                     estatusPago={registro.estatus_pago}
                     ligaComunidad={ligaComunidad}
+                    cartaGenerada={Boolean(registro.carta_token)}
                     compact
                   />
                 </td>

@@ -39,6 +39,18 @@ export function formatearFechaHora(fechaISO: string | null | undefined): string 
 }
 
 /**
+ * Formato largo, solo fecha, sin hora: "14 de agosto de 2026"
+ */
+export function formatearFechaLarga(fechaISO: string | null | undefined): string {
+  if (!fechaISO) return "—";
+  const p = partes(fechaISO, { day: "numeric", month: "long", year: "numeric" });
+  const dia = valorParte(p, "day");
+  const mes = valorParte(p, "month");
+  const anio = valorParte(p, "year");
+  return `${dia} de ${mes} de ${anio}`;
+}
+
+/**
  * Formato corto, solo fecha, para tablas: "31 jul 2026"
  */
 export function formatearFechaCorta(fechaISO: string | null | undefined): string {

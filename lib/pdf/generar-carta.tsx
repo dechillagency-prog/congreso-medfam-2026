@@ -1,0 +1,41 @@
+import React from "react";
+import path from "node:path";
+import { renderToBuffer } from "@react-pdf/renderer";
+import QRCode from "qrcode";
+import { CartaCongresista } from "./carta-congresista";
+import { PROGRAMA_PDF } from "@/content/programa";
+import { SITE_URL } from "@/lib/site-url";
+
+export interface DatosCartaCongresista {
+  nombreCompleto: string;
+  folio: string;
+  tipoInscripcion: string;
+  fecha: string;
+}
+
+/**
+ * Genera el PDF de la Carta de Congresista para un congresista específico.
+ * Función pura: no toca Supabase ni Storage, solo recibe datos y devuelve
+ * el PDF ya renderizado en memoria, listo para ser subido por quien la
+ * llame.
+ */
+export async function generarCartaCongresistaPdf(datos: DatosCartaCongresista): Promise<Buffer> {
+  const qrDataUrl = await QRCode.toDataURL(`${SITE_URL}${PROGRAMA_PDF.ruta}`, {
+    margin: 0,
+    width: 300,
+    color: { dark: "#0F172A", light: "#FFFFFF" },
+  });
+
+  const fotoPath = path.join(process.cwd(), "public", "images", "congreso-1.jpg");
+
+  return renderToBuffer(
+    <CartaCongresista
+      nombreCompleto={datos.nombreCompleto}
+      folio={datos.folio}
+      tipoInscripcion={datos.tipoInscripcion}
+      fechaConfirmacion={datos.fecha}
+      qrDataUrl={qrDataUrl}
+      fotoPath={fotoPath}
+    />
+  );
+}

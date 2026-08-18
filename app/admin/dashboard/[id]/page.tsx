@@ -74,11 +74,12 @@ export default async function AdminRegistroDetallePage({
         <div className="flex flex-col items-end gap-3">
           <AccionesRegistro id={r.id} estatusActual={r.estatus_pago} />
           <WhatsAppConfirmacionLink
+            id={r.id}
             nombre={r.nombre}
             folio={r.folio}
-            celular={r.celular}
             estatusPago={r.estatus_pago}
             ligaComunidad={ligaComunidad}
+            cartaGenerada={Boolean(r.carta_token)}
           />
         </div>
       </div>
@@ -170,6 +171,44 @@ export default async function AdminRegistroDetallePage({
           )}
         </div>
       )}
+
+      {/* Carta de Congresista */}
+      <div className="mt-8 rounded-2xl border border-border p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-body/50">Carta de congresista</h2>
+        {r.carta_token && r.carta_generada_en ? (
+          <div className="mt-4">
+            <p className="text-sm text-ink">
+              Estado: <span className="font-semibold text-primary">Generada</span>
+            </p>
+            <p className="mt-1 text-xs text-body/40">Generada el {formatearFechaHora(r.carta_generada_en)}</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <a
+                href={`/carta/${r.carta_token}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
+              >
+                <FileText className="h-4 w-4" /> Ver carta
+              </a>
+              <a
+                href={`/carta/${r.carta_token}?download=1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink hover:border-primary hover:text-primary"
+              >
+                <FileText className="h-4 w-4" /> Descargar PDF
+              </a>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-body/50">Estado: No generada</p>
+        )}
+        {r.whatsapp_confirmacion_iniciada_en && (
+          <p className="mt-4 text-xs text-body/50">
+            Confirmación WhatsApp iniciada: {formatearFechaHora(r.whatsapp_confirmacion_iniciada_en)}
+          </p>
+        )}
+      </div>
 
       {/* Historial de comprobantes */}
       {historialConUrl.length > 1 && (

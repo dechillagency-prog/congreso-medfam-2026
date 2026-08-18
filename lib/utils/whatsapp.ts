@@ -28,10 +28,12 @@ export function construirMensajeConfirmacion({
   nombre,
   folio,
   ligaComunidad,
+  ligaCarta,
 }: {
   nombre: string;
   folio: string;
   ligaComunidad?: string | null;
+  ligaCarta?: string;
 }): string {
   const lineas = [
     `Hola, ${nombre}.`,
@@ -46,9 +48,18 @@ export function construirMensajeConfirmacion({
     "",
     "📍 Sede:",
     SEDE_CONGRESO,
-    "",
-    "Nos dará mucho gusto contar con tu participación.",
   ];
+
+  if (ligaCarta) {
+    lineas.push(
+      "",
+      "Puedes descargar tu Carta de Congresista aquí:",
+      "",
+      ligaCarta
+    );
+  }
+
+  lineas.push("", "Nos dará mucho gusto contar con tu participación.");
 
   if (ligaComunidad) {
     lineas.push(

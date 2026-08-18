@@ -51,6 +51,9 @@ export interface Database {
           motivo_rechazo: string | null;
           codigo_qr: string | null;
           constancia_url: string | null;
+          carta_generada_en: string | null;
+          carta_token: string | null;
+          whatsapp_confirmacion_iniciada_en: string | null;
           asistencia_confirmada: boolean;
           created_at: string;
           updated_at: string;
@@ -72,6 +75,9 @@ export interface Database {
           motivo_rechazo?: string | null;
           codigo_qr?: string | null;
           constancia_url?: string | null;
+          carta_generada_en?: string | null;
+          carta_token?: string | null;
+          whatsapp_confirmacion_iniciada_en?: string | null;
           asistencia_confirmada?: boolean;
           created_at?: string;
           updated_at?: string;

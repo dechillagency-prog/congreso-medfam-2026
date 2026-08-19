@@ -66,6 +66,18 @@ async function enviarCorreoInterno(
     return { enviado: false, yaEstabaEnviado: true };
   }
 
+  // En producción, RESEND_FROM_EMAIL es obligatoria (ver resend-client.ts)
+  // — sin remitente verificado configurado, se rechaza aquí en vez de
+  // arriesgarse a enviar (o fallar de forma confusa) con el dominio
+  // compartido de pruebas de Resend.
+  if (!RESEND_FROM_EMAIL) {
+    return {
+      enviado: false,
+      yaEstabaEnviado: false,
+      error: "Falta configurar RESEND_FROM_EMAIL en este entorno — no se envió ningún correo.",
+    };
+  }
+
   // Descarga el PDF YA subido — nunca se regenera una segunda versión
   // solo para el correo; es exactamente el mismo archivo que sirve
   // /carta/[token].

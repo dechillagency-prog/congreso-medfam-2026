@@ -43,6 +43,7 @@ export function WhatsAppConfirmacionLink({
   const [estado, setEstado] = useState<Estado>("idle");
   const [error, setError] = useState<string | null>(null);
   const [enlacePendiente, setEnlacePendiente] = useState<string | null>(null);
+  const [correoError, setCorreoError] = useState<string | null>(null);
 
   if (estatusPago !== "confirmado") return null;
 
@@ -51,6 +52,7 @@ export function WhatsAppConfirmacionLink({
     setEstado("loading");
     setError(null);
     setEnlacePendiente(null);
+    setCorreoError(null);
 
     const resultado = await prepararConfirmacionWhatsApp(id);
 
@@ -58,6 +60,13 @@ export function WhatsAppConfirmacionLink({
       setEstado("error");
       setError(resultado.message ?? "No se pudo preparar la confirmación");
       return;
+    }
+
+    // WhatsApp sigue su curso aunque el correo haya fallado — solo se avisa,
+    // sin bloquear nada; "Enviar correo de confirmación" queda disponible
+    // en el bloque de la carta para reintentar.
+    if (resultado.data.correoError) {
+      setCorreoError(resultado.data.correoError);
     }
 
     const enlaceElegido = esDispositivoMovil()
@@ -118,6 +127,12 @@ export function WhatsAppConfirmacionLink({
       {estado === "error" && error && (
         <span className="flex items-center gap-1 text-[11px] font-medium text-red-600">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {error}
+        </span>
+      )}
+
+      {correoError && (
+        <span className="flex items-center gap-1 text-[11px] font-medium text-amber-600">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> WhatsApp listo, pero el correo de confirmación falló: {correoError}
         </span>
       )}
 

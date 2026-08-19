@@ -2,9 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { generarCartaCongresistaPdf } from "@/lib/pdf/generar-carta";
 import { formatearFechaLarga } from "@/lib/utils/fecha";
 
-const CARTA_BUCKET = "cartas-congresista";
+export const CARTA_BUCKET = "cartas-congresista";
 
-const TIPO_INSCRIPCION_LABEL: Record<string, string> = {
+// Exportado para que lib/email/enviar-confirmacion-email.ts use exactamente
+// la misma etiqueta que ya se imprime en la carta — un solo lugar de verdad.
+export const TIPO_INSCRIPCION_LABEL: Record<string, string> = {
   federado: "Socio Federado",
   no_federado: "No Federado",
   residente: "Residente",

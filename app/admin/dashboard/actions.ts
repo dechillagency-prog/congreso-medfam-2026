@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerOCrearCartaCongresista } from "@/lib/supabase/carta-congresista";
 import { construirMensajeConfirmacion, construirEnlaceWhatsApp, construirEnlaceWhatsAppWeb } from "@/lib/utils/whatsapp";
+import { enviarCorreoConfirmacion, reenviarCorreoConfirmacion } from "@/lib/email/enviar-confirmacion-email";
 import { getConfiguracion } from "@/lib/config";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -76,6 +77,12 @@ export interface PrepararConfirmacionWhatsAppResult {
     cartaFueGenerada: boolean;
     /** Liga pública /carta/[token] — la misma que ya va incluida en ambos enlaces. */
     ligaCarta: string;
+    /** true = el correo de confirmación se envió en esta llamada. */
+    correoEnviado: boolean;
+    /** true = no se reenvió porque ya existía un envío exitoso previo. */
+    correoYaEnviado: boolean;
+    /** Presente solo si el correo falló — WhatsApp continúa de todas formas. */
+    correoError?: string;
   };
 }
 
@@ -123,6 +130,21 @@ export async function prepararConfirmacionWhatsApp(id: string): Promise<Preparar
     return { success: false, message: err instanceof Error ? err.message : "No se pudo generar la carta" };
   }
 
+  // El correo es un canal adicional sobre un WhatsApp que ya funciona en
+  // producción: si falla (incluso de forma inesperada), nunca debe impedir
+  // que el admin complete la confirmación por WhatsApp — solo se reporta.
+  let correoEnviado = false;
+  let correoYaEnviado = false;
+  let correoError: string | undefined;
+  try {
+    const resultadoCorreo = await enviarCorreoConfirmacion(id);
+    correoEnviado = resultadoCorreo.enviado;
+    correoYaEnviado = resultadoCorreo.yaEstabaEnviado;
+    correoError = resultadoCorreo.error;
+  } catch (err) {
+    correoError = err instanceof Error ? err.message : "No se pudo enviar el correo de confirmación";
+  }
+
   const ligaCarta = `${SITE_URL}/carta/${carta.token}`;
   const ligaComunidad = await getConfiguracion<string | null>("whatsapp_comunidad_url", null);
 
@@ -152,6 +174,72 @@ export async function prepararConfirmacionWhatsApp(id: string): Promise<Preparar
 
   return {
     success: true,
-    data: { enlaceWhatsApp, enlaceWhatsAppWeb, cartaFueGenerada, ligaCarta },
+    data: { enlaceWhatsApp, enlaceWhatsAppWeb, cartaFueGenerada, ligaCarta, correoEnviado, correoYaEnviado, correoError },
   };
+}
+
+export interface EnviarCorreoResult {
+  success: boolean;
+  message?: string;
+  /** true = no se envió porque ya existía un envío exitoso previo (solo en el envío no forzado). */
+  yaEstabaEnviado?: boolean;
+}
+
+/**
+ * Botón "Enviar correo de confirmación": para registros que YA tienen
+ * carta generada (nuevos o históricos, de antes de que existiera este
+ * correo) pero todavía no se les ha enviado. No toca WhatsApp, no genera
+ * otro token, no regenera el PDF — reutiliza exactamente lo que ya existe.
+ * Idempotente: mismo comportamiento que la llamada automática dentro de
+ * prepararConfirmacionWhatsApp.
+ */
+export async function enviarCorreoRegistro(id: string): Promise<EnviarCorreoResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "No autorizado" };
+  }
+
+  const resultado = await enviarCorreoConfirmacion(id);
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath(`/admin/dashboard/${id}`);
+
+  if (resultado.error) {
+    return { success: false, message: resultado.error };
+  }
+
+  return { success: true, yaEstabaEnviado: resultado.yaEstabaEnviado };
+}
+
+/**
+ * Botón "Reenviar correo": ignora a propósito si ya existe un envío
+ * exitoso — es la única vía para volver a enviar el correo (nunca ocurre
+ * por un doble clic accidental en los otros dos flujos).
+ */
+export async function reenviarCorreoRegistro(id: string): Promise<EnviarCorreoResult> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "No autorizado" };
+  }
+
+  const resultado = await reenviarCorreoConfirmacion(id);
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath(`/admin/dashboard/${id}`);
+
+  if (resultado.error) {
+    return { success: false, message: resultado.error };
+  }
+
+  return { success: true };
 }

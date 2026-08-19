@@ -54,6 +54,8 @@ export interface Database {
           carta_generada_en: string | null;
           carta_token: string | null;
           whatsapp_confirmacion_iniciada_en: string | null;
+          carta_email_enviado_en: string | null;
+          carta_email_id: string | null;
           asistencia_confirmada: boolean;
           created_at: string;
           updated_at: string;
@@ -78,6 +80,8 @@ export interface Database {
           carta_generada_en?: string | null;
           carta_token?: string | null;
           whatsapp_confirmacion_iniciada_en?: string | null;
+          carta_email_enviado_en?: string | null;
+          carta_email_id?: string | null;
           asistencia_confirmada?: boolean;
           created_at?: string;
           updated_at?: string;

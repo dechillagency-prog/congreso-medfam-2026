@@ -35,23 +35,23 @@ export default async function PatrocinadoresPage() {
                 <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-body/40">
                   {cat.nombre}
                 </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-10">
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-12">
                   {itemsCat.map((p) => (
                     <a
                       key={p.id}
                       href={p.url ?? "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="relative flex h-16 w-40 items-center justify-center"
+                      className="relative flex h-32 w-32 items-center justify-center overflow-visible p-3 sm:h-40 sm:w-40 sm:p-4 lg:h-48 lg:w-48 lg:p-5"
                     >
                       {p.logo_url && esUrlImagenValida(p.logo_url) ? (
                         <Image
                           src={p.logo_url}
                           alt={p.nombre}
                           fill
-                          sizes="160px"
+                          sizes="(min-width: 1024px) 192px, (min-width: 640px) 160px, 128px"
                           unoptimized={!esImagenOptimizablePorNextImage(p.logo_url)}
-                          className="object-contain grayscale transition-all hover:grayscale-0"
+                          className="scale-[1.15] object-contain grayscale transition-all hover:grayscale-0"
                         />
                       ) : (
                         <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-border bg-surface px-3 text-center">

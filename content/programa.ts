@@ -8,6 +8,6 @@ export const PROGRAMA_PDF = {
   rutaEnDisco: "public/documents/programa-preliminar-xxv-congreso-2026.pdf",
   titulo: "Programa preliminar",
   descripcion: "Consulta la agenda en línea o descarga la versión completa para conservarla e imprimirla.",
-  boton: "Descargar programa preliminar completo",
+  boton: "Descargar programa académico oficial",
   botonNoDisponible: "Programa PDF próximamente disponible",
 };

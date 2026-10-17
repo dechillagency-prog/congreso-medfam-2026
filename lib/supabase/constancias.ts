@@ -21,6 +21,11 @@ export interface SolicitudConstancia {
   tipoIdentificador: "folio" | "nombre";
   identificador: string;
   verificacion: string; // correo o celular, se detecta el formato automáticamente
+  // SOLO la ruta de prueba admin-only (app/api/admin/constancias-prueba)
+  // pasa esto en true, después de verificar sesión de administrador por su
+  // cuenta. La ruta pública (app/api/constancias) nunca lo envía, así que
+  // su comportamiento queda exactamente igual que antes de esto existir.
+  omitirChequeoHabilitado?: boolean;
 }
 
 export type ResultadoConstancia =
@@ -69,9 +74,11 @@ export function coincideVerificacion(
 }
 
 export async function resolverConstancia(solicitud: SolicitudConstancia): Promise<ResultadoConstancia> {
-  const habilitado = await getConfiguracion<boolean>("constancias_habilitadas", false);
-  if (!habilitado) {
-    return { ok: false, codigo: "deshabilitado", mensaje: MENSAJE_DESHABILITADO };
+  if (!solicitud.omitirChequeoHabilitado) {
+    const habilitado = await getConfiguracion<boolean>("constancias_habilitadas", false);
+    if (!habilitado) {
+      return { ok: false, codigo: "deshabilitado", mensaje: MENSAJE_DESHABILITADO };
+    }
   }
 
   const identificador = solicitud.identificador?.trim();

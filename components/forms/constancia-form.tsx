@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 type TipoIdentificador = "folio" | "nombre";
 
-export function ConstanciaForm() {
+export function ConstanciaForm({ endpoint = "/api/constancias" }: { endpoint?: string }) {
   const [tipoIdentificador, setTipoIdentificador] = useState<TipoIdentificador>("folio");
   const [identificador, setIdentificador] = useState("");
   const [verificacion, setVerificacion] = useState("");
@@ -21,7 +21,7 @@ export function ConstanciaForm() {
     setEnviando(true);
 
     try {
-      const res = await fetch("/api/constancias", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tipoIdentificador, identificador, verificacion }),

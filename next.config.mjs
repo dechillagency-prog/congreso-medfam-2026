@@ -25,6 +25,7 @@ const nextConfig = {
     "/admin/dashboard": ["./lib/pdf/fonts/**/*", "./lib/pdf/assets/**/*"],
     "/admin/dashboard/[id]": ["./lib/pdf/fonts/**/*", "./lib/pdf/assets/**/*"],
     "/api/constancias": ["./lib/pdf/fonts/**/*", "./lib/pdf/assets/**/*"],
+    "/api/admin/constancias-prueba": ["./lib/pdf/fonts/**/*", "./lib/pdf/assets/**/*"],
   },
 };
 

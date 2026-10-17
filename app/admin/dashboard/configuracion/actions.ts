@@ -15,6 +15,11 @@ export async function guardarConfiguracion(clave: string, valor: Json): Promise<
   if (error) return { success: false, message: error.message };
   revalidatePath("/admin/dashboard/configuracion");
   revalidatePath("/", "layout");
+  // Explícito a propósito además de la cascada de "/", "layout": esta
+  // clave en particular (constancias_habilitadas) controla una ruta
+  // pública sensible, así que preferimos no depender solo de que la
+  // cascada del layout raíz alcance a /constancias.
+  revalidatePath("/constancias");
   return { success: true };
 }
 

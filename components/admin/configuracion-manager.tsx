@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, Plus, Trash2, Save, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,16 +43,22 @@ function validarLigaWhatsApp(valor: string): string | null {
 export function ConfiguracionManager({ configuraciones }: { configuraciones: Configuracion[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [valores, setValores] = useState<Record<string, string>>(() => {
-    const base = Object.fromEntries(configuraciones.map((c) => [c.clave, formatearValor(c.valor)]));
-    // Las claves conocidas siempre tienen un valor en el estado (vacío si aún
-    // no existe la fila en la base de datos), para que el campo se muestre
-    // desde el primer momento en "Ajustes del evento".
-    for (const clave of Object.keys(CLAVES_CONOCIDAS)) {
-      if (!(clave in base)) base[clave] = "";
-    }
-    return base;
-  });
+  const [valores, setValores] = useState<Record<string, string>>(() => construirValoresIniciales(configuraciones));
+
+  // BUG REAL que causaba el "Sí" fantasma: useState(() => ...) solo corre su
+  // inicializador la PRIMERA vez que este componente se monta. router.refresh()
+  // (lo que se llama después de cada guardado) vuelve a ejecutar el Server
+  // Component y le pasa un `configuraciones` fresco como prop, pero NO
+  // desmonta este Client Component — así que sin este efecto, `valores`
+  // se quedaba congelado con lo último que el usuario había tocado con el
+  // mouse, sin importar lo que en verdad quedó guardado en Supabase. Con
+  // este efecto, cada vez que llega una versión nueva de `configuraciones`
+  // (es decir, cada vez que hay un refresh real), el estado local se
+  // vuelve a construir desde la fuente de verdad.
+  useEffect(() => {
+    setValores(construirValoresIniciales(configuraciones));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configuraciones]);
   const [nuevaClave, setNuevaClave] = useState("");
   const [nuevoValor, setNuevoValor] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -168,8 +174,19 @@ export function ConfiguracionManager({ configuraciones }: { configuraciones: Con
                         value={valores[clave] ?? ""}
                         onChange={(e) => setValores({ ...valores, [clave]: e.target.value })}
                       >
-                        <option value="true">Sí</option>
+                        {/* Si la clave todavía no existe en la base de datos, `valores[clave]`
+                            es "" — antes esto hacía que el <select> mostrara "Sí" (la primera
+                            opción) solo por ser la primera en el HTML, dando a entender que
+                            algo estaba habilitado sin que nadie lo hubiera guardado nunca.
+                            Esta opción placeholder hace ese estado explícito en vez de
+                            disfrazarlo de "Sí". */}
+                        {valores[clave] === "" && (
+                          <option value="" disabled>
+                            — sin guardar todavía (se trata como No) —
+                          </option>
+                        )}
                         <option value="false">No</option>
+                        <option value="true">Sí</option>
                       </select>
                     ) : (
                       <input
@@ -255,4 +272,15 @@ export function ConfiguracionManager({ configuraciones }: { configuraciones: Con
 function formatearValor(valor: unknown): string {
   if (typeof valor === "string") return valor.replace(/^"|"$/g, "");
   return JSON.stringify(valor);
+}
+
+function construirValoresIniciales(configuraciones: Configuracion[]): Record<string, string> {
+  const base = Object.fromEntries(configuraciones.map((c) => [c.clave, formatearValor(c.valor)]));
+  // Las claves conocidas siempre tienen un valor en el estado (vacío si aún
+  // no existe la fila en la base de datos), para que el campo se muestre
+  // desde el primer momento en "Ajustes del evento".
+  for (const clave of Object.keys(CLAVES_CONOCIDAS)) {
+    if (!(clave in base)) base[clave] = "";
+  }
+  return base;
 }

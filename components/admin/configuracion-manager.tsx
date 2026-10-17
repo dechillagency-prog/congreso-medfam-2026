@@ -17,6 +17,7 @@ const CLAVES_CONOCIDAS: Record<
   cupo_maximo: { label: "Cupo máximo de asistentes", tipo: "number" },
   fecha_limite_tarifa_preferencial: { label: "Fecha límite tarifa preferencial", tipo: "date" },
   inscripciones_abiertas: { label: "Inscripciones abiertas", tipo: "boolean" },
+  constancias_habilitadas: { label: "Emisión de constancias digitales habilitada", tipo: "boolean" },
   whatsapp_comunidad_url: {
     label: "Liga de la comunidad de WhatsApp",
     tipo: "text",

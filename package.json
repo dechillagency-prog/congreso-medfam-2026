@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@react-pdf/renderer": "^4.6.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.46.1",
@@ -24,6 +25,7 @@
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.454.0",
     "next": "15.5.22",
+    "pdf-lib": "^1.17.1",
     "postcss": "^8.4.47",
     "qrcode": "^1.5.4",
     "react": "19.0.0",

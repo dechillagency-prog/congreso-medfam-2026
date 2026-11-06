@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!resultado.ok) {
-    const status = resultado.codigo === "deshabilitado" ? 503 : 404;
+    const status = resultado.codigo === "deshabilitado" || resultado.codigo === "sin_folios" ? 503 : 404;
     return NextResponse.json({ mensaje: resultado.mensaje }, { status });
   }
 

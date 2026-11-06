@@ -13,6 +13,12 @@ import { resolverConstancia, type SolicitudConstancia } from "@/lib/supabase/con
  * "/api/admin/", igual que app/api/admin/export-csv/route.ts), así que la
  * sesión se verifica aquí mismo con el cliente de sesión antes de tocar
  * cualquier dato. Sin sesión de Supabase Auth válida -> 401, sin excepción.
+ *
+ * modoVistaPrevia: true a propósito en TODAS las llamadas — esta ruta
+ * nunca llama a asignar_folio_aval ni consume inventario real de sellos
+ * oficiales (ver el comentario de modoVistaPrevia en
+ * lib/supabase/constancias.ts para el detalle de cómo evita tocar el
+ * inventario mientras sigue mostrando un PDF de 2 páginas fiel al diseño).
  */
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -44,6 +50,9 @@ export async function POST(request: NextRequest) {
     identificador: body.identificador,
     verificacion: body.verificacion,
     omitirChequeoHabilitado: true,
+    // Nunca consume un folio oficial nuevo — ver el comentario de
+    // modoVistaPrevia en lib/supabase/constancias.ts.
+    modoVistaPrevia: true,
   });
 
   if (!resultado.ok) {

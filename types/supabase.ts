@@ -237,6 +237,36 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["configuraciones"]["Insert"]>;
         Relationships: [];
       };
+      folios_aval_academico: {
+        Row: {
+          id: string;
+          folio: string;
+          pagina_pdf_origen: number;
+          estado: "disponible" | "asignado";
+          registro_id: string | null;
+          asignado_en: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          folio: string;
+          pagina_pdf_origen: number;
+          estado?: "disponible" | "asignado";
+          registro_id?: string | null;
+          asignado_en?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["folios_aval_academico"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "folios_aval_academico_registro_id_fkey";
+            columns: ["registro_id"];
+            isOneToOne: true;
+            referencedRelation: "registros";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       checkins: {
         Row: {
           id: string;
@@ -386,6 +416,10 @@ export interface Database {
       };
       generar_folio: { Args: Record<string, never>; Returns: string };
       generar_codigo_qr: { Args: { p_folio: string }; Returns: string };
+      asignar_folio_aval: {
+        Args: { p_registro_id: string };
+        Returns: { folio: string; pagina_pdf_origen: number }[];
+      };
     };
     Enums: {
       tipo_inscripcion: "federado" | "no_federado" | "residente";

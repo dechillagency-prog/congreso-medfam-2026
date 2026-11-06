@@ -18,6 +18,7 @@ import fontkit from "@pdf-lib/fontkit";
  */
 const PLANTILLA_PATH = path.join(process.cwd(), "lib", "pdf", "assets", "constancia-plantilla.pdf");
 const FONT_PATH = path.join(process.cwd(), "lib", "pdf", "fonts", "montserrat", "Montserrat-Bold.ttf");
+const SELLOS_PATH = path.join(process.cwd(), "lib", "pdf", "assets", "sellos-aval-asistentes.pdf");
 
 // Coordenadas de la línea en blanco de la plantilla, medidas directamente
 // sobre el PDF oficial (792 x 612 pt, carta horizontal) a partir del
@@ -41,7 +42,13 @@ const TAMANO_MINIMO = 14;
 // Mismo navy que usa el diseño oficial (muestreado directamente del PDF).
 const COLOR_NOMBRE = rgb(0 / 255, 32 / 255, 87 / 255);
 
-export async function generarConstanciaPdf(nombreCompleto: string): Promise<Buffer> {
+// Construye el PDFDocument de la constancia (plantilla + nombre), SIN
+// guardarlo todavía — para poder, antes de serializar a bytes, anexarle la
+// página del sello de aval académico cuando corresponda. Separado de
+// generarConstanciaPdf() para que ese caso (constancia sola, sin sello,
+// usado hoy por quien no necesite tocar el flujo de folios) siga
+// funcionando exactamente igual que antes de este cambio.
+export async function construirConstanciaPdfDoc(nombreCompleto: string): Promise<PDFDocument> {
   const plantillaBytes = fs.readFileSync(PLANTILLA_PATH);
   const fontBytes = fs.readFileSync(FONT_PATH);
 
@@ -68,6 +75,46 @@ export async function generarConstanciaPdf(nombreCompleto: string): Promise<Buff
     color: COLOR_NOMBRE,
   });
 
+  return pdfDoc;
+}
+
+export async function generarConstanciaPdf(nombreCompleto: string): Promise<Buffer> {
+  const pdfDoc = await construirConstanciaPdfDoc(nombreCompleto);
+  const bytes = await pdfDoc.save();
+  return Buffer.from(bytes);
+}
+
+/**
+ * Anexa al PDFDocument de la constancia (ya construido) la página ORIGINAL
+ * del sello de aval académico correspondiente — copiada tal cual con
+ * copyPages(), nunca redibujada ni rasterizada, para no alterar ni un solo
+ * trazo, firma o número del sello oficial.
+ *
+ * `paginaPdfOrigen` es 1-indexado (coincide con el número de página que
+ * guarda folios_aval_academico.pagina_pdf_origen); PDFDocument.copyPages
+ * es 0-indexado, de ahí el -1.
+ */
+export async function anexarPaginaSello(pdfDoc: PDFDocument, paginaPdfOrigen: number): Promise<void> {
+  const sellosBytes = fs.readFileSync(SELLOS_PATH);
+  const sellosDoc = await PDFDocument.load(sellosBytes);
+
+  const totalPaginasSellos = sellosDoc.getPageCount();
+  if (paginaPdfOrigen < 1 || paginaPdfOrigen > totalPaginasSellos) {
+    throw new Error(
+      `paginaPdfOrigen fuera de rango: ${paginaPdfOrigen} (el PDF de sellos tiene ${totalPaginasSellos} páginas)`
+    );
+  }
+
+  const [paginaSello] = await pdfDoc.copyPages(sellosDoc, [paginaPdfOrigen - 1]);
+  pdfDoc.addPage(paginaSello);
+}
+
+export async function generarConstanciaPdfConSello(
+  nombreCompleto: string,
+  paginaPdfOrigen: number
+): Promise<Buffer> {
+  const pdfDoc = await construirConstanciaPdfDoc(nombreCompleto);
+  await anexarPaginaSello(pdfDoc, paginaPdfOrigen);
   const bytes = await pdfDoc.save();
   return Buffer.from(bytes);
 }

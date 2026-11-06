@@ -12,6 +12,7 @@ export type Conferencia = Tables<"conferencias">;
 export type CategoriaPatrocinio = Tables<"categorias_patrocinio">;
 export type Patrocinador = Tables<"patrocinadores">;
 export type Checkin = Tables<"checkins">;
+export type FolioAvalAcademico = Tables<"folios_aval_academico">;
 export type AsistenciaConferencia = Tables<"asistencia_conferencias">;
 export type Encuesta = Tables<"encuestas">;
 export type EncuestaRespuesta = Tables<"encuesta_respuestas">;

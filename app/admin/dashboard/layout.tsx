@@ -7,6 +7,7 @@ const SECCIONES = [
   { href: "/admin/dashboard/conferencias", label: "Conferencias" },
   { href: "/admin/dashboard/patrocinadores", label: "Patrocinadores" },
   { href: "/admin/dashboard/categorias", label: "Categorías" },
+  { href: "/admin/dashboard/folios-aval", label: "Folios Aval" },
   { href: "/admin/dashboard/configuracion", label: "Configuración" },
 ];
 

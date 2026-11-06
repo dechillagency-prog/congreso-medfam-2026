@@ -7,6 +7,7 @@ type FilaFolio = {
   pagina_pdf_origen: number;
   estado: "disponible" | "asignado";
   asignado_en: string | null;
+  registro_id: string | null;
   registro: { folio: string; nombre: string } | null;
 };
 
@@ -25,7 +26,7 @@ export default async function AdminFoliosAvalPage() {
       .eq("estado", "asignado"),
     supabase
       .from("folios_aval_academico")
-      .select("id, folio, pagina_pdf_origen, estado, asignado_en, registro:registros(folio, nombre)")
+      .select("id, folio, pagina_pdf_origen, estado, asignado_en, registro_id, registro:registros(folio, nombre)")
       .order("pagina_pdf_origen"),
   ]);
 
@@ -59,7 +60,7 @@ export default async function AdminFoliosAvalPage() {
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-border">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[1050px] text-left text-sm">
           <thead className="bg-surface text-xs uppercase tracking-wide text-body/50">
             <tr>
               <th className="px-4 py-3">Página PDF</th>
@@ -68,6 +69,7 @@ export default async function AdminFoliosAvalPage() {
               <th className="px-4 py-3">Folio de registro</th>
               <th className="px-4 py-3">Congresista</th>
               <th className="px-4 py-3">Asignado el</th>
+              <th className="px-4 py-3">Constancia</th>
             </tr>
           </thead>
           <tbody>
@@ -90,6 +92,28 @@ export default async function AdminFoliosAvalPage() {
                 <td className="px-4 py-3">{f.registro?.nombre ?? "—"}</td>
                 <td className="px-4 py-3 text-xs text-body/60">
                   {f.asignado_en ? formatearFechaHora(f.asignado_en) : "—"}
+                </td>
+                <td className="px-4 py-3">
+                  {f.estado === "asignado" && f.registro_id ? (
+                    <div className="flex gap-3 whitespace-nowrap text-xs font-semibold">
+                      <a
+                        href={`/api/admin/folios-aval/constancia?registroId=${f.registro_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        Ver PDF
+                      </a>
+                      <a
+                        href={`/api/admin/folios-aval/constancia?registroId=${f.registro_id}&download=1`}
+                        className="text-body/60 hover:underline"
+                      >
+                        Descargar
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-body/30">—</span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -169,3 +169,50 @@ export async function resolverConstancia(solicitud: SolicitudConstancia): Promis
     nombreArchivo: `Constancia-${coincidencia.folio}.pdf`,
   };
 }
+
+export type ResultadoRegeneracion =
+  | { ok: true; pdf: Buffer; nombreArchivo: string }
+  | { ok: false; mensaje: string };
+
+/**
+ * Regenera el PDF de 2 páginas para un registro que YA tiene un folio de
+ * aval académico asignado — exclusivamente para el panel admin
+ * ("Ver / Descargar constancia"). A propósito de solo lectura: un único
+ * SELECT contra folios_aval_academico, nunca llama a asignar_folio_aval ni
+ * a ninguna otra escritura. No depende de constancias_habilitadas (ese
+ * chequeo ni siquiera existe en este camino) y usa el folio/página ya
+ * guardados — jamás consume ni altera una asignación.
+ */
+export async function regenerarConstanciaAsignada(registroId: string): Promise<ResultadoRegeneracion> {
+  const supabase = await createAdminClient();
+
+  const { data: registro, error: errorRegistro } = await supabase
+    .from("registros")
+    .select("nombre, folio")
+    .eq("id", registroId)
+    .maybeSingle();
+
+  if (errorRegistro || !registro) {
+    return { ok: false, mensaje: "No se encontró el registro." };
+  }
+
+  const { data: asignacion, error: errorAsignacion } = await supabase
+    .from("folios_aval_academico")
+    .select("pagina_pdf_origen")
+    .eq("registro_id", registroId)
+    .maybeSingle();
+
+  if (errorAsignacion || !asignacion) {
+    return { ok: false, mensaje: "Este registro todavía no tiene un folio de aval académico asignado." };
+  }
+
+  const pdfDoc = await construirConstanciaPdfDoc(registro.nombre);
+  await anexarPaginaSello(pdfDoc, asignacion.pagina_pdf_origen);
+  const pdf = Buffer.from(await pdfDoc.save());
+
+  return {
+    ok: true,
+    pdf,
+    nombreArchivo: `Constancia-${registro.folio}.pdf`,
+  };
+}
